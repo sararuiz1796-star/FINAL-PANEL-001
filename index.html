@@ -1,0 +1,2782 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Marca · Cami López · Preludio</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F5F2EE;
+  --bg2:#EDEAE4;
+  --white:#FDFCFA;
+  --sidebar:#1E1814;
+  --sidebar2:#2A211A;
+  --terra:#C4785A;
+  --terra2:#B36848;
+  --terra-l:rgba(196,120,90,0.12);
+  --azul:#7A9BB5;
+  --rosado:#C4908A;
+  --text:#2A1F1A;
+  --text2:#5A4A3A;
+  --muted:#9A8A7A;
+  --border:rgba(42,31,26,0.1);
+  --sidebar-border:rgba(255,255,255,0.07);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* ── TOP BAR ── */
+.topbar{
+  height:44px;background:var(--sidebar);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;flex-shrink:0;
+  border-bottom:1px solid var(--sidebar-border);
+}
+.tb-left{display:flex;align-items:center;gap:12px}
+.tb-preludio{
+  font-family:'DM Mono',monospace;
+  font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(255,255,255,.35);
+}
+.tb-sep{width:1px;height:14px;background:var(--sidebar-border)}
+.tb-marca{
+  font-size:12px;font-weight:500;color:rgba(255,255,255,.7);
+}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-badge{
+  background:rgba(196,120,90,.15);
+  border:1px solid rgba(196,120,90,.25);
+  color:var(--terra);
+  padding:3px 10px;border-radius:99px;
+  font-family:'DM Mono',monospace;
+  font-size:8px;letter-spacing:.15em;text-transform:uppercase;
+}
+.tb-dot{width:7px;height:7px;border-radius:50%;background:#5A9870}
+
+/* ── LAYOUT ── */
+.app{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:220px;background:var(--sidebar);
+  display:flex;flex-direction:column;
+  border-right:1px solid var(--sidebar-border);
+  flex-shrink:0;overflow-y:auto;
+}
+.sidebar-logo{
+  padding:20px 18px 16px;
+  border-bottom:1px solid var(--sidebar-border);
+}
+.sidebar-logo img{
+  height:32px;
+  filter:brightness(0) saturate(100%) invert(70%) sepia(20%) saturate(500%) hue-rotate(330deg);
+}
+.sidebar-section{padding:16px 12px 8px}
+.sidebar-section-label{
+  font-family:'DM Mono',monospace;
+  font-size:8px;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(255,255,255,.2);
+  padding:0 8px;margin-bottom:4px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:8px;
+  cursor:pointer;transition:all .18s;
+  margin-bottom:1px;
+}
+.nav-item:hover{background:rgba(255,255,255,.05)}
+.nav-item.active{background:rgba(196,120,90,.15);border:1px solid rgba(196,120,90,.2)}
+.nav-item .ni-icon{
+  width:28px;height:28px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;
+  background:rgba(255,255,255,.05);
+}
+.nav-item.active .ni-icon{background:rgba(196,120,90,.2)}
+.nav-item .ni-text{
+  font-size:12px;font-weight:500;
+  color:rgba(255,255,255,.45);
+}
+.nav-item.active .ni-text{color:var(--terra)}
+.nav-item .ni-badge{
+  margin-left:auto;
+  background:rgba(196,120,90,.2);
+  color:var(--terra);
+  padding:1px 6px;border-radius:99px;
+  font-size:8px;font-family:'DM Mono',monospace;
+}
+
+.sidebar-footer{
+  margin-top:auto;
+  padding:14px 12px;
+  border-top:1px solid var(--sidebar-border);
+}
+.sf-nivel{
+  background:rgba(196,120,90,.1);
+  border:1px solid rgba(196,120,90,.2);
+  border-radius:8px;padding:10px 12px;
+}
+.sf-label{
+  font-family:'DM Mono',monospace;
+  font-size:8px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--terra);margin-bottom:4px;
+}
+.sf-name{font-size:11px;font-weight:600;color:rgba(255,255,255,.7)}
+
+/* ── MAIN CONTENT ── */
+.content{flex:1;overflow-y:auto;background:var(--bg)}
+.panel{display:none;padding:32px 36px;animation:fadeIn .3s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── PANEL HEADER ── */
+.panel-header{margin-bottom:28px}
+.ph-label{
+  font-family:'DM Mono',monospace;
+  font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--terra);margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;
+}
+.ph-label::before{content:'';width:16px;height:1px;background:var(--terra)}
+.ph-title{
+  font-family:'Lora',serif;
+  font-size:28px;font-weight:400;
+  color:var(--text);line-height:1.2;
+}
+.ph-title em{font-style:italic;color:var(--terra)}
+.ph-desc{font-size:13.5px;color:var(--text2);margin-top:6px;font-weight:300;line-height:1.7}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.mb{margin-bottom:16px}
+
+/* ── CARD ── */
+.card{
+  background:var(--white);border-radius:14px;
+  padding:22px 24px;border:1px solid var(--border);
+}
+.card.terra{background:var(--terra);border-color:var(--terra)}
+.card.dark{background:var(--sidebar);border-color:var(--sidebar-border)}
+.clabel{
+  font-family:'DM Mono',monospace;
+  font-size:8px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px;
+}
+.card.terra .clabel{color:rgba(255,255,255,.55)}
+.card.dark .clabel{color:rgba(255,255,255,.3)}
+.card h3{font-family:'Lora',serif;font-size:18px;font-weight:400;color:var(--text);margin-bottom:8px}
+.card.terra h3{color:white}
+.card.dark h3{color:rgba(255,255,255,.8)}
+.card p{font-size:13px;color:var(--text2);line-height:1.7;font-weight:300}
+.card.terra p{color:rgba(255,255,255,.75)}
+.card.dark p{color:rgba(255,255,255,.5)}
+
+/* ── RESUMEN OVERVIEW ── */
+.overview-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:16px}
+.brand-hero{
+  background:var(--white);border-radius:16px;
+  padding:32px;border:1px solid var(--border);
+  display:flex;gap:28px;align-items:center;
+}
+.bh-logo{
+  width:80px;height:80px;border-radius:14px;
+  background:var(--bg);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.bh-logo img{height:56px}
+.bh-info h2{
+  font-family:'Lora',serif;
+  font-size:24px;font-weight:400;color:var(--text);
+}
+.bh-info h2 em{font-style:italic;color:var(--terra)}
+.bh-role{
+  font-family:'DM Mono',monospace;
+  font-size:9px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--muted);margin:4px 0 12px;
+}
+.bh-esencia{
+  font-family:'Lora',serif;font-size:13.5px;font-style:italic;
+  color:var(--text2);line-height:1.55;
+}
+.brand-stats{
+  background:var(--sidebar);border-radius:16px;
+  padding:24px;border:1px solid var(--sidebar-border);
+  display:flex;flex-direction:column;gap:0;
+}
+.bstat{
+  padding:12px 0;
+  border-bottom:1px solid var(--sidebar-border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.bstat:last-child{border-bottom:none}
+.bstat-label{font-size:11px;color:rgba(255,255,255,.35);font-weight:400}
+.bstat-val{
+  font-family:'DM Mono',monospace;
+  font-size:11px;color:var(--terra);font-weight:400;
+}
+
+.modules-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.module-card{
+  background:var(--white);border-radius:12px;
+  padding:16px 18px;border:1px solid var(--border);
+  cursor:pointer;transition:all .2s;
+  display:flex;gap:12px;align-items:flex-start;
+}
+.module-card:hover{border-color:rgba(196,120,90,.3);transform:translateY(-2px)}
+.mc-ico{
+  width:36px;height:36px;border-radius:9px;
+  background:var(--terra-l);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.mc-name{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:3px}
+.mc-status{
+  font-family:'DM Mono',monospace;
+  font-size:8px;letter-spacing:.12em;text-transform:uppercase;
+}
+.mc-status.ok{color:var(--terra)}
+.mc-status.new{color:#5A9870}
+
+/* ── PALETA ── */
+.paleta-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.swatch{border-radius:12px;overflow:hidden;border:1px solid var(--border);flex:1;min-width:100px}
+.sw-color{height:80px}
+.sw-info{padding:10px 12px;background:var(--white)}
+.sw-name{font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:2px}
+.sw-hex{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)}
+
+/* TIPO */
+.tipo-demo{
+  background:var(--white);border-radius:14px;
+  padding:28px;border:1px solid var(--border);
+  margin-bottom:14px;
+}
+.td-serif{
+  font-family:'Lora',serif;
+  font-size:36px;font-style:italic;
+  color:var(--text);margin-bottom:4px;
+}
+.td-sans{
+  font-family:'DM Sans',sans-serif;
+  font-size:16px;font-weight:300;
+  color:var(--text2);
+}
+.td-mono{
+  font-family:'DM Mono',monospace;
+  font-size:11px;color:var(--muted);
+  letter-spacing:.12em;margin-top:12px;
+  padding-top:12px;border-top:1px solid var(--border);
+}
+
+/* ── BRANDBOARD ── */
+.brandboard{
+  background:var(--white);border-radius:16px;
+  border:1px solid var(--border);
+  overflow:hidden;margin-bottom:16px;
+}
+.bb-header{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.bb-title{font-size:13px;font-weight:600;color:var(--text)}
+.bb-sub{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.bb-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  grid-template-rows:140px 100px;
+  gap:2px;background:var(--border);
+}
+.bb-cell{overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
+.bb-cell.span2{grid-column:span 2}
+.bb-text{
+  position:absolute;bottom:10px;left:12px;
+  font-family:'DM Mono',monospace;
+  font-size:8px;letter-spacing:.12em;text-transform:uppercase;
+  color:rgba(255,255,255,.5);
+}
+
+/* ── ESTRATEGIA ── */
+.prop-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.prop-card{
+  background:var(--white);border-radius:12px;
+  padding:20px 22px;border:1px solid var(--border);
+}
+.prop-label{
+  font-family:'DM Mono',monospace;
+  font-size:8px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--terra);margin-bottom:8px;
+}
+.prop-text{font-size:13px;color:var(--text2);line-height:1.7;font-weight:300}
+.manifiesto-card{
+  background:var(--terra);border-radius:14px;
+  padding:28px;margin-bottom:14px;position:relative;overflow:hidden;
+}
+.manifiesto-card::before{
+  content:'';position:absolute;
+  width:200px;height:200px;border-radius:50%;
+  background:rgba(255,255,255,.05);
+  right:-50px;bottom:-50px;
+}
+.mc-quote{
+  font-family:'Lora',serif;
+  font-size:16px;font-style:italic;
+  color:white;line-height:1.75;
+  position:relative;z-index:1;
+}
+.mc-firma{
+  font-family:'DM Mono',monospace;
+  font-size:8px;letter-spacing:.15em;text-transform:uppercase;
+  color:rgba(255,255,255,.5);margin-top:14px;
+}
+
+/* ── RADAR ── */
+.radar-wrap{
+  background:var(--white);border-radius:16px;
+  padding:28px;border:1px solid var(--border);
+  display:flex;gap:32px;align-items:flex-start;
+}
+.radar-chart{flex-shrink:0}
+.radar-legend{flex:1}
+.rl-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:16px}
+.rl-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 0;border-bottom:1px solid var(--border);
+  font-size:12.5px;
+}
+.rl-item:last-child{border-bottom:none}
+.rl-name{color:var(--text2)}
+.rl-bar{
+  display:flex;align-items:center;gap:8px;
+}
+.rl-track{width:80px;height:4px;background:var(--bg2);border-radius:99px;overflow:hidden}
+.rl-fill{height:100%;border-radius:99px;background:var(--terra)}
+.rl-val{
+  font-family:'DM Mono',monospace;
+  font-size:10px;color:var(--terra);min-width:24px;text-align:right;
+}
+
+/* ── KIT LANZAMIENTO ── */
+.kit-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.checklist{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.check-item{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:10px 12px;border-radius:8px;
+  background:var(--bg);border:1px solid var(--border);
+  cursor:pointer;transition:all .2s;
+  font-size:12.5px;color:var(--text);
+}
+.check-item:hover{border-color:rgba(196,120,90,.2)}
+.check-item.done{opacity:.5;text-decoration:line-through;color:var(--muted)}
+.check-box{
+  width:16px;height:16px;border-radius:4px;
+  border:1px solid var(--muted);flex-shrink:0;
+  margin-top:1px;display:flex;align-items:center;justify-content:center;
+  font-size:9px;transition:all .2s;
+}
+.check-item.done .check-box{
+  background:var(--terra);border-color:var(--terra);color:white;
+}
+
+.layout-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.layout-item{
+  border-radius:10px;overflow:hidden;
+  border:1px solid var(--border);
+  cursor:pointer;transition:all .2s;
+}
+.layout-item:hover{border-color:var(--terra);transform:translateY(-2px)}
+.layout-preview{
+  height:110px;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.layout-label{
+  padding:8px 10px;background:var(--white);
+  font-size:10px;font-weight:600;color:var(--text);
+}
+.layout-type{
+  font-family:'DM Mono',monospace;
+  font-size:8px;color:var(--muted);margin-top:1px;
+}
+
+/* ── MENSAJES ── */
+.msg-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.msg-item{
+  background:var(--white);border-radius:12px;
+  padding:16px 20px;border:1px solid var(--border);
+  display:flex;gap:16px;
+}
+.msg-item.hero-msg{
+  background:rgba(196,120,90,.06);
+  border-color:rgba(196,120,90,.2);
+}
+.mi-tipo{
+  font-family:'DM Mono',monospace;
+  font-size:8px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);min-width:90px;padding-top:2px;
+}
+.mi-text{
+  font-family:'Lora',serif;
+  font-size:14.5px;font-style:italic;
+  color:var(--text);line-height:1.5;
+}
+.msg-item.hero-msg .mi-text{color:var(--terra)}
+
+.palabras-row{display:flex;gap:14px;margin-bottom:14px}
+.pw-group{flex:1;background:var(--white);border-radius:12px;padding:16px 18px;border:1px solid var(--border)}
+.pw-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:10px}
+.pw-usa .pw-label{color:var(--terra)}
+.pw-evita .pw-label{color:var(--muted)}
+.pw-tags{display:flex;flex-wrap:wrap;gap:6px}
+.pw-tag{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:500}
+.pw-usa .pw-tag{background:var(--terra-l);color:var(--terra);border:1px solid rgba(196,120,90,.2)}
+.pw-evita .pw-tag{background:var(--bg2);color:var(--muted);border:1px solid var(--border);text-decoration:line-through;opacity:.7}
+
+/* PILL */
+.pill{display:inline-block;padding:3px 9px;border-radius:99px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase}
+.pill.t{background:var(--terra-l);color:var(--terra);border:1px solid rgba(196,120,90,.2)}
+.pill.g{background:rgba(90,152,112,.1);color:#3A8050;border:1px solid rgba(90,152,112,.2)}
+.pill.m{background:var(--bg2);color:var(--muted);border:1px solid var(--border)}
+
+/* SCROLL */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{width:180px}
+  .panel{padding:20px}
+  .g2,.g3,.g4,.prop-grid,.kit-grid,.overview-grid,.modules-grid{grid-template-columns:1fr}
+  .radar-wrap{flex-direction:column}
+  .palabras-row{flex-direction:column}
+}
+
+/* ── DOWNLOAD BUTTONS ── */
+.download-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 18px;border-radius:99px;
+  font-size:11px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;cursor:pointer;
+  transition:all .2s;text-decoration:none;
+  border:2px solid var(--terra);
+  color:var(--terra);background:transparent;
+}
+.download-btn:hover{background:var(--terra);color:white;transform:translateY(-1px)}
+.download-btn.primary{background:var(--terra);color:white}
+.download-btn.primary:hover{background:var(--terra2)}
+.download-btn .di{font-size:14px}
+.download-section{
+  background:var(--white);border-radius:16px;
+  padding:24px 28px;border:1px solid var(--border);
+  margin-bottom:14px;
+}
+.ds-header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:16px;padding-bottom:14px;
+  border-bottom:1px solid var(--border);
+}
+.ds-title{font-size:15px;font-weight:800;color:var(--text)}
+.ds-sub{font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
+.ds-files{display:flex;flex-direction:column;gap:8px}
+.ds-file{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;background:var(--bg);border-radius:10px;
+  border:1px solid var(--border);
+}
+.ds-file-info{display:flex;gap:10px;align-items:center}
+.ds-file-ico{
+  width:32px;height:32px;border-radius:8px;
+  background:rgba(196,120,90,.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.ds-file-name{font-size:13px;font-weight:600;color:var(--text)}
+.ds-file-type{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase}
+.ds-file-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:99px;
+  font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  border:1px solid var(--border);color:var(--muted);
+  background:white;cursor:not-allowed;opacity:.6;
+  transition:all .2s;text-decoration:none;
+}
+.ds-file-btn.ready{
+  border-color:var(--terra);color:var(--terra);
+  cursor:pointer;opacity:1;
+}
+.ds-file-btn.ready:hover{background:var(--terra);color:white}
+
+
+/* ── CHECKLIST LANZAMIENTO ── */
+.launch-section{padding:60px 36px}
+.launch-question{
+  background:var(--white);border-radius:20px;
+  border:2px solid var(--border);
+  padding:36px;margin-bottom:0;
+  text-align:center;
+}
+.lq-title{
+  font-family:'Lora',serif;
+  font-size:24px;font-weight:400;
+  color:var(--text);margin-bottom:8px;
+}
+.lq-sub{font-size:14px;color:var(--muted);font-weight:300;margin-bottom:28px}
+.lq-btns{display:flex;gap:14px;justify-content:center}
+.lq-btn{
+  padding:14px 40px;border-radius:99px;
+  font-size:13px;font-weight:700;letter-spacing:.04em;
+  cursor:pointer;transition:all .2s;border:2px solid var(--border);
+  background:transparent;color:var(--text2);
+}
+.lq-btn:hover,.lq-btn.selected{
+  background:var(--terra);border-color:var(--terra);color:white;
+}
+
+/* Checklist container */
+.cl-container{display:none;margin-top:20px}
+.cl-container.visible{display:block;animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.cl-header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:20px;
+}
+.cl-title{font-size:15px;font-weight:800;color:var(--text)}
+.cl-progress{
+  display:flex;align-items:center;gap:10px;
+}
+.cl-progress-bar{
+  width:120px;height:6px;
+  background:var(--bg2);border-radius:99px;overflow:hidden;
+}
+.cl-progress-fill{
+  height:100%;background:var(--terra);
+  border-radius:99px;transition:width .4s ease;
+}
+.cl-progress-text{
+  font-family:'DM Mono',monospace;
+  font-size:10px;color:var(--muted);letter-spacing:.1em;
+}
+
+.cl-group{margin-bottom:20px}
+.cl-group-label{
+  font-family:'DM Mono',monospace;
+  font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--terra);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.cl-group-label::after{
+  content:'';flex:1;height:1px;background:rgba(196,120,90,.2);
+}
+
+.cl-item{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:12px 16px;border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg);margin-bottom:8px;
+  cursor:pointer;transition:all .2s;
+  user-select:none;
+}
+.cl-item:hover{border-color:rgba(196,120,90,.25)}
+.cl-item.done{
+  background:rgba(196,120,90,.05);
+  border-color:rgba(196,120,90,.2);
+}
+.cl-item.done .cl-check{
+  background:var(--terra);border-color:var(--terra);
+}
+.cl-item.done .cl-check::after{
+  content:'✓';color:white;font-size:10px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  line-height:1;
+}
+.cl-item.done .cl-text{
+  text-decoration:line-through;color:var(--muted);
+}
+.cl-item.preludio{
+  background:rgba(196,120,90,.06);
+  border-color:rgba(196,120,90,.25);
+  cursor:default;
+}
+.cl-item.preludio .cl-check{
+  background:var(--terra);border-color:var(--terra);
+}
+.cl-item.preludio .cl-check::after{
+  content:'✓';color:white;font-size:10px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.cl-check{
+  width:20px;height:20px;border-radius:6px;
+  border:2px solid var(--border);
+  flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.cl-text{font-size:13px;font-weight:500;color:var(--text);line-height:1.4}
+.cl-sub{font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
+.cl-tag{
+  margin-left:auto;
+  padding:2px 8px;border-radius:99px;
+  font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  flex-shrink:0;
+}
+.cl-tag.preludio-tag{background:var(--terra-l);color:var(--terra);border:1px solid rgba(196,120,90,.2)}
+.cl-tag.pending-tag{background:var(--bg2);color:var(--muted);border:1px solid var(--border)}
+
+/* Celebración */
+.cl-celebration{
+  display:none;
+  text-align:center;padding:28px;
+  background:rgba(196,120,90,.06);
+  border-radius:14px;border:1px solid rgba(196,120,90,.2);
+  margin-top:16px;
+}
+.cl-celebration.visible{display:block;animation:fadeIn .5s ease}
+.cl-celebration .emoji{font-size:40px;margin-bottom:12px}
+.cl-celebration h3{
+  font-family:'Lora',serif;font-size:20px;
+  color:var(--terra);margin-bottom:6px;
+}
+.cl-celebration p{font-size:13px;color:var(--text2);font-weight:300}
+
+
+/* ── DIAGNÓSTICO ── */
+.diag-intro{
+  background:var(--white);border-radius:20px;
+  border:2px solid var(--border);padding:36px;
+  text-align:center;margin-bottom:0;
+}
+.diag-intro h2{
+  font-family:'Lora',serif;font-size:24px;
+  color:var(--text);margin-bottom:8px;
+}
+.diag-intro p{font-size:14px;color:var(--muted);font-weight:300;margin-bottom:28px}
+
+.diag-form{display:none;margin-top:16px}
+.diag-form.visible{display:block;animation:fadeIn .4s ease}
+
+.diag-q{
+  background:var(--white);border-radius:14px;
+  border:1px solid var(--border);
+  padding:24px 26px;margin-bottom:12px;
+}
+.diag-q-num{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:var(--terra);margin-bottom:8px;
+}
+.diag-q-text{
+  font-size:14px;font-weight:600;color:var(--text);
+  margin-bottom:16px;line-height:1.4;
+}
+.diag-q-sub{font-size:12px;color:var(--muted);font-weight:300;margin-bottom:14px}
+.diag-scale{display:flex;gap:8px;align-items:center}
+.diag-scale-label{
+  font-size:11px;color:var(--muted);font-weight:500;
+  min-width:80px;
+}
+.diag-scale-label.right{text-align:right}
+.diag-options{display:flex;gap:8px;flex:1;justify-content:center}
+.diag-opt{
+  width:40px;height:40px;border-radius:50%;
+  border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:var(--muted2);
+  cursor:pointer;transition:all .2s;
+  flex-shrink:0;
+}
+.diag-opt:hover{border-color:var(--terra);color:var(--terra)}
+.diag-opt.selected{
+  background:var(--terra);border-color:var(--terra);color:white;
+}
+
+.diag-submit{
+  width:100%;padding:16px;border-radius:12px;
+  background:var(--terra);color:white;
+  font-size:13px;font-weight:800;letter-spacing:.04em;
+  border:none;cursor:pointer;transition:all .2s;
+  margin-top:8px;
+}
+.diag-submit:hover{background:var(--terra2);transform:translateY(-1px)}
+.diag-submit:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* RESULTADO */
+.diag-result{display:none;margin-top:16px}
+.diag-result.visible{display:block;animation:fadeIn .5s ease}
+
+.result-header{
+  border-radius:16px;padding:32px;
+  text-align:center;margin-bottom:16px;
+  position:relative;overflow:hidden;
+}
+.result-header.exploracion{background:rgba(122,155,181,0.12);border:2px solid rgba(122,155,181,0.3)}
+.result-header.consolidando{background:rgba(196,120,90,0.1);border:2px solid rgba(196,120,90,0.25)}
+.result-header.escalando{background:rgba(90,152,112,0.1);border:2px solid rgba(90,152,112,0.25)}
+.result-emoji{font-size:40px;margin-bottom:12px}
+.result-fase{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.2em;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.exploracion .result-fase{color:var(--azul)}
+.consolidando .result-fase{color:var(--terra)}
+.escalando .result-fase{color:#5A9870}
+.result-title{
+  font-family:'Lora',serif;font-size:26px;
+  color:var(--text);margin-bottom:8px;
+}
+.result-desc{font-size:13.5px;color:var(--text2);font-weight:300;line-height:1.7;max-width:500px;margin:0 auto}
+
+.result-score{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  margin-top:16px;
+}
+.rs-num{
+  font-family:'Playfair Display',serif;
+  font-size:48px;font-weight:400;color:var(--terra);line-height:1;
+}
+.rs-label{font-size:12px;color:var(--muted);font-weight:500}
+
+/* Secciones del resultado */
+.result-section{
+  background:var(--white);border-radius:14px;
+  border:1px solid var(--border);padding:24px 26px;
+  margin-bottom:12px;
+}
+.rs-label-sec{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:var(--terra);margin-bottom:14px;
+}
+.rs-items{display:flex;flex-direction:column;gap:8px}
+.rs-item{
+  display:flex;gap:10px;align-items:flex-start;
+  font-size:13px;color:var(--text2);line-height:1.5;
+}
+.rs-item .ico{flex-shrink:0;margin-top:1px}
+.rs-item.done-item .ico{color:var(--terra)}
+.rs-item.next-item .ico{color:#5A9870}
+
+.diag-retry{
+  background:transparent;border:2px solid var(--border);
+  color:var(--muted2);padding:12px 24px;border-radius:99px;
+  font-size:12px;font-weight:700;cursor:pointer;
+  transition:all .2s;margin-top:8px;width:100%;
+}
+.diag-retry:hover{border-color:var(--terra);color:var(--terra)}
+
+
+.micro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:0}
+.micro-card{background:var(--white);border-radius:16px;border:2px solid var(--border);padding:24px 20px;text-align:center;transition:all .25s;position:relative;overflow:hidden}
+.micro-card:hover{border-color:rgba(196,120,90,.3);transform:translateY(-3px)}
+.micro-avatar{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--terra);margin:0 auto 14px;display:block}
+.micro-name{font-family:"Lora",serif;font-size:16px;font-weight:500;color:var(--text);margin-bottom:4px}
+.micro-handle{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:.12em;color:var(--terra);margin-bottom:10px}
+.micro-nicho{font-size:12px;color:var(--muted2);font-weight:400;line-height:1.5;margin-bottom:14px}
+.micro-tags{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:14px}
+.micro-tag{padding:3px 9px;border-radius:99px;font-size:9px;font-weight:700;background:rgba(196,120,90,.08);color:var(--terra);border:1px solid rgba(196,120,90,.2)}
+.micro-precio{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:14px;padding:8px 12px;background:var(--bg);border-radius:8px}
+.micro-precio strong{color:var(--terra);font-weight:700}
+.micro-btn{display:block;width:100%;padding:10px;border-radius:10px;background:var(--terra);color:white;font-size:11px;font-weight:800;letter-spacing:.04em;text-decoration:none;transition:all .2s;border:none;cursor:pointer;text-align:center}
+.micro-btn:hover{background:var(--terra2)}
+.micro-intro{background:rgba(196,120,90,.06);border:1px solid rgba(196,120,90,.15);border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;gap:14px;align-items:center}
+.micro-intro h4{font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px}
+.micro-intro p{font-size:12.5px;color:var(--text2);font-weight:300;line-height:1.5}
+
+
+/* ── TOKENS ── */
+.tokens-hero{
+  background:var(--terra);border-radius:20px;
+  padding:36px;text-align:center;
+  margin-bottom:20px;position:relative;overflow:hidden;
+}
+.tokens-hero::before{content:'';position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);top:-60px;right:-60px}
+.tokens-hero::after{content:'';position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.05);bottom:-30px;left:-30px}
+.th-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:12px}
+.th-title{font-family:'Lora',serif;font-size:24px;color:white;margin-bottom:6px;position:relative;z-index:1}
+.th-sub{font-size:13px;color:rgba(255,255,255,.75);font-weight:300;position:relative;z-index:1}
+.th-progress{margin-top:20px;position:relative;z-index:1}
+.th-track{height:8px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden;margin-bottom:8px}
+.th-fill{height:100%;background:var(--amarillo,#F0DC8C);border-radius:99px;transition:width .8s cubic-bezier(.16,1,.3,1)}
+.th-count{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.7);letter-spacing:.1em}
+
+/* Token circles */
+.tokens-display{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.token{
+  width:52px;height:52px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;border:2px solid var(--border);
+  background:var(--bg);transition:all .3s;
+  cursor:default;position:relative;
+}
+.token.earned{
+  background:var(--terra);border-color:var(--terra);
+  box-shadow:0 4px 14px rgba(196,120,90,.3);
+}
+.token.earned::after{
+  content:'';position:absolute;inset:-4px;
+  border-radius:50%;border:2px solid rgba(196,120,90,.3);
+}
+
+/* Retos */
+.reto-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.reto{
+  display:flex;gap:14px;align-items:center;
+  padding:16px 18px;
+  background:var(--white);border-radius:14px;
+  border:1px solid var(--border);
+  cursor:pointer;transition:all .2s;
+}
+.reto:hover{border-color:rgba(196,120,90,.25)}
+.reto.done{background:rgba(196,120,90,.06);border-color:rgba(196,120,90,.2)}
+.reto-ico{
+  width:44px;height:44px;border-radius:12px;
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;transition:all .2s;
+}
+.reto.done .reto-ico{background:var(--terra)}
+.reto-info{flex:1}
+.reto-name{font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:3px}
+.reto.done .reto-name{color:var(--terra)}
+.reto-desc{font-size:12px;color:var(--muted);font-weight:300;line-height:1.4}
+.reto-token{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.reto.done .reto-token{background:var(--terra);border-color:var(--terra)}
+
+/* Premio */
+.premio-card{
+  background:var(--bg2);border-radius:16px;
+  border:2px dashed var(--border);
+  padding:28px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.premio-card.unlocked{
+  background:rgba(196,120,90,.06);
+  border:2px solid var(--terra);
+  border-style:solid;
+}
+.premio-lock{font-size:32px;margin-bottom:12px}
+.premio-title{font-family:'Lora',serif;font-size:18px;color:var(--text);margin-bottom:8px}
+.premio-desc{font-size:13px;color:var(--muted2);font-weight:300;line-height:1.6;margin-bottom:16px}
+.premio-btn{
+  padding:12px 28px;border-radius:99px;
+  background:var(--terra);color:white;
+  font-size:12px;font-weight:800;
+  border:none;cursor:pointer;transition:all .2s;
+  opacity:.4;pointer-events:none;
+}
+.premio-btn.active{opacity:1;pointer-events:all}
+.premio-btn.active:hover{background:var(--terra2);transform:translateY(-1px)}
+
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="tb-left">
+    <span class="tb-preludio">pre·ludio.</span>
+    <div class="tb-sep"></div>
+    <span class="tb-marca">Panel de Control · Cami López</span>
+  </div>
+  <div class="tb-right">
+    <span class="tb-badge">Nivel Lanzamiento</span>
+    <div class="tb-dot"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <img style="display:none" alt="Cami López">
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Tu marca</div>
+    <div class="nav-item active" onclick="show('overview',this)">
+      <div class="ni-icon">🏠</div>
+      <span class="ni-text">Resumen</span>
+    </div>
+    <div class="nav-item" onclick="show('identidad',this)">
+      <div class="ni-icon">🎨</div>
+      <span class="ni-text">Identidad Visual</span>
+    </div>
+    <div class="nav-item" onclick="show('brandboard',this)">
+      <div class="ni-icon">🖼</div>
+      <span class="ni-text">Brandboard</span>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Estrategia</div>
+    <div class="nav-item" onclick="show('estrategia',this)">
+      <div class="ni-icon">🧭</div>
+      <span class="ni-text">Estrategia</span>
+    </div>
+    <div class="nav-item" onclick="show('mensajes',this)">
+      <div class="ni-icon">💬</div>
+      <span class="ni-text">Mensajes</span>
+    </div>
+    <div class="nav-item" onclick="show('radar',this)">
+      <div class="ni-icon">📡</div>
+      <span class="ni-text">Radar de Marca</span>
+      <span class="ni-badge">nuevo</span>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Ejecución</div>
+    <div class="nav-item" onclick="show('kit',this)">
+      <div class="ni-icon">🚀</div>
+      <span class="ni-text">Kit de Lanzamiento</span>
+    </div>
+    <div class="nav-item" onclick="show('manual',this)">
+      <div class="ni-icon">📖</div>
+      <span class="ni-text">Manual de Marca</span>
+    </div>
+      <div class="nav-item" onclick="show('descargas',this)">
+      <div class="ni-icon">⬇️</div>
+      <span class="ni-text">Descargas</span>
+      <span class="ni-badge">7</span>
+    </div>
+  </div>
+
+      <div class="nav-item" onclick="show('diagnostico',this)">
+      <div class="ni-icon">📊</div>
+      <span class="ni-text">Diagnóstico</span>
+    </div>
+    <div class="nav-item" onclick="show('checklist',this)">
+      <div class="ni-icon">🚀</div>
+      <span class="ni-text">Plan de lanzamiento</span>
+    </div>
+  </div>
+
+      <div class="nav-item" onclick="show('tokens',this)">
+      <div class="ni-icon">🪙</div>
+      <span class="ni-text">Mis tokens</span>
+      <span class="ni-badge" id="token-badge">0/4</span>
+    </div>
+    <div class="nav-item" onclick="show('microinfluencers',this)">
+      <div class="ni-icon">⭐</div>
+      <span class="ni-text">Microinfluencers</span>
+      <span class="ni-badge" style="background:rgba(196,120,90,.15);color:var(--terra)">Nivel 3</span>
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="sf-nivel">
+      <div class="sf-label">Tu nivel</div>
+      <div class="sf-name">Lanzamiento ✦</div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- ══ OVERVIEW ══ -->
+<div class="panel active" id="p-overview">
+  <div class="panel-header">
+    <div class="ph-label">Panel de Control</div>
+    <h1 class="ph-title">Bienvenida, <em>Cami López</em></h1>
+    <p class="ph-desc">Este es tu universo de marca. Todo lo que necesitas para existir, posicionarte y lanzar — en un solo lugar.</p>
+  </div>
+
+  <div class="overview-grid mb">
+    <div class="brand-hero">
+      <div class="bh-logo" style="width:120px;height:60px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:8px;flex-shrink:0"><svg xmlns="http://www.w3.org/2000/svg" viewBox="360 630 700 80" style="width:100%;height:auto;display:block">
+  <!-- Generator: Adobe Illustrator 30.1.0, SVG Export Plug-In . SVG Version: 2.1.1 Build 136)  -->
+  <defs>
+    <style>
+      .st0 {
+        stroke: #e95f3b;
+        stroke-miterlimit: 10;
+        stroke-width: 3px;
+      }
+
+      .st0, .st1 {
+        fill: #e95f3b;
+      }
+    
+/* ── CHECKLIST LANZAMIENTO ── */
+.launch-section{padding:60px 36px}
+.launch-question{
+  background:var(--white);border-radius:20px;
+  border:2px solid var(--border);
+  padding:36px;margin-bottom:0;
+  text-align:center;
+}
+.lq-title{
+  font-family:'Lora',serif;
+  font-size:24px;font-weight:400;
+  color:var(--text);margin-bottom:8px;
+}
+.lq-sub{font-size:14px;color:var(--muted);font-weight:300;margin-bottom:28px}
+.lq-btns{display:flex;gap:14px;justify-content:center}
+.lq-btn{
+  padding:14px 40px;border-radius:99px;
+  font-size:13px;font-weight:700;letter-spacing:.04em;
+  cursor:pointer;transition:all .2s;border:2px solid var(--border);
+  background:transparent;color:var(--text2);
+}
+.lq-btn:hover,.lq-btn.selected{
+  background:var(--terra);border-color:var(--terra);color:white;
+}
+
+/* Checklist container */
+.cl-container{display:none;margin-top:20px}
+.cl-container.visible{display:block;animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.cl-header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:20px;
+}
+.cl-title{font-size:15px;font-weight:800;color:var(--text)}
+.cl-progress{
+  display:flex;align-items:center;gap:10px;
+}
+.cl-progress-bar{
+  width:120px;height:6px;
+  background:var(--bg2);border-radius:99px;overflow:hidden;
+}
+.cl-progress-fill{
+  height:100%;background:var(--terra);
+  border-radius:99px;transition:width .4s ease;
+}
+.cl-progress-text{
+  font-family:'DM Mono',monospace;
+  font-size:10px;color:var(--muted);letter-spacing:.1em;
+}
+
+.cl-group{margin-bottom:20px}
+.cl-group-label{
+  font-family:'DM Mono',monospace;
+  font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--terra);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.cl-group-label::after{
+  content:'';flex:1;height:1px;background:rgba(196,120,90,.2);
+}
+
+.cl-item{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:12px 16px;border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg);margin-bottom:8px;
+  cursor:pointer;transition:all .2s;
+  user-select:none;
+}
+.cl-item:hover{border-color:rgba(196,120,90,.25)}
+.cl-item.done{
+  background:rgba(196,120,90,.05);
+  border-color:rgba(196,120,90,.2);
+}
+.cl-item.done .cl-check{
+  background:var(--terra);border-color:var(--terra);
+}
+.cl-item.done .cl-check::after{
+  content:'✓';color:white;font-size:10px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  line-height:1;
+}
+.cl-item.done .cl-text{
+  text-decoration:line-through;color:var(--muted);
+}
+.cl-item.preludio{
+  background:rgba(196,120,90,.06);
+  border-color:rgba(196,120,90,.25);
+  cursor:default;
+}
+.cl-item.preludio .cl-check{
+  background:var(--terra);border-color:var(--terra);
+}
+.cl-item.preludio .cl-check::after{
+  content:'✓';color:white;font-size:10px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.cl-check{
+  width:20px;height:20px;border-radius:6px;
+  border:2px solid var(--border);
+  flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.cl-text{font-size:13px;font-weight:500;color:var(--text);line-height:1.4}
+.cl-sub{font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
+.cl-tag{
+  margin-left:auto;
+  padding:2px 8px;border-radius:99px;
+  font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  flex-shrink:0;
+}
+.cl-tag.preludio-tag{background:var(--terra-l);color:var(--terra);border:1px solid rgba(196,120,90,.2)}
+.cl-tag.pending-tag{background:var(--bg2);color:var(--muted);border:1px solid var(--border)}
+
+/* Celebración */
+.cl-celebration{
+  display:none;
+  text-align:center;padding:28px;
+  background:rgba(196,120,90,.06);
+  border-radius:14px;border:1px solid rgba(196,120,90,.2);
+  margin-top:16px;
+}
+.cl-celebration.visible{display:block;animation:fadeIn .5s ease}
+.cl-celebration .emoji{font-size:40px;margin-bottom:12px}
+.cl-celebration h3{
+  font-family:'Lora',serif;font-size:20px;
+  color:var(--terra);margin-bottom:6px;
+}
+.cl-celebration p{font-size:13px;color:var(--text2);font-weight:300}
+
+
+/* ── DIAGNÓSTICO ── */
+.diag-intro{
+  background:var(--white);border-radius:20px;
+  border:2px solid var(--border);padding:36px;
+  text-align:center;margin-bottom:0;
+}
+.diag-intro h2{
+  font-family:'Lora',serif;font-size:24px;
+  color:var(--text);margin-bottom:8px;
+}
+.diag-intro p{font-size:14px;color:var(--muted);font-weight:300;margin-bottom:28px}
+
+.diag-form{display:none;margin-top:16px}
+.diag-form.visible{display:block;animation:fadeIn .4s ease}
+
+.diag-q{
+  background:var(--white);border-radius:14px;
+  border:1px solid var(--border);
+  padding:24px 26px;margin-bottom:12px;
+}
+.diag-q-num{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:var(--terra);margin-bottom:8px;
+}
+.diag-q-text{
+  font-size:14px;font-weight:600;color:var(--text);
+  margin-bottom:16px;line-height:1.4;
+}
+.diag-q-sub{font-size:12px;color:var(--muted);font-weight:300;margin-bottom:14px}
+.diag-scale{display:flex;gap:8px;align-items:center}
+.diag-scale-label{
+  font-size:11px;color:var(--muted);font-weight:500;
+  min-width:80px;
+}
+.diag-scale-label.right{text-align:right}
+.diag-options{display:flex;gap:8px;flex:1;justify-content:center}
+.diag-opt{
+  width:40px;height:40px;border-radius:50%;
+  border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:var(--muted2);
+  cursor:pointer;transition:all .2s;
+  flex-shrink:0;
+}
+.diag-opt:hover{border-color:var(--terra);color:var(--terra)}
+.diag-opt.selected{
+  background:var(--terra);border-color:var(--terra);color:white;
+}
+
+.diag-submit{
+  width:100%;padding:16px;border-radius:12px;
+  background:var(--terra);color:white;
+  font-size:13px;font-weight:800;letter-spacing:.04em;
+  border:none;cursor:pointer;transition:all .2s;
+  margin-top:8px;
+}
+.diag-submit:hover{background:var(--terra2);transform:translateY(-1px)}
+.diag-submit:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* RESULTADO */
+.diag-result{display:none;margin-top:16px}
+.diag-result.visible{display:block;animation:fadeIn .5s ease}
+
+.result-header{
+  border-radius:16px;padding:32px;
+  text-align:center;margin-bottom:16px;
+  position:relative;overflow:hidden;
+}
+.result-header.exploracion{background:rgba(122,155,181,0.12);border:2px solid rgba(122,155,181,0.3)}
+.result-header.consolidando{background:rgba(196,120,90,0.1);border:2px solid rgba(196,120,90,0.25)}
+.result-header.escalando{background:rgba(90,152,112,0.1);border:2px solid rgba(90,152,112,0.25)}
+.result-emoji{font-size:40px;margin-bottom:12px}
+.result-fase{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.2em;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.exploracion .result-fase{color:var(--azul)}
+.consolidando .result-fase{color:var(--terra)}
+.escalando .result-fase{color:#5A9870}
+.result-title{
+  font-family:'Lora',serif;font-size:26px;
+  color:var(--text);margin-bottom:8px;
+}
+.result-desc{font-size:13.5px;color:var(--text2);font-weight:300;line-height:1.7;max-width:500px;margin:0 auto}
+
+.result-score{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  margin-top:16px;
+}
+.rs-num{
+  font-family:'Playfair Display',serif;
+  font-size:48px;font-weight:400;color:var(--terra);line-height:1;
+}
+.rs-label{font-size:12px;color:var(--muted);font-weight:500}
+
+/* Secciones del resultado */
+.result-section{
+  background:var(--white);border-radius:14px;
+  border:1px solid var(--border);padding:24px 26px;
+  margin-bottom:12px;
+}
+.rs-label-sec{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:var(--terra);margin-bottom:14px;
+}
+.rs-items{display:flex;flex-direction:column;gap:8px}
+.rs-item{
+  display:flex;gap:10px;align-items:flex-start;
+  font-size:13px;color:var(--text2);line-height:1.5;
+}
+.rs-item .ico{flex-shrink:0;margin-top:1px}
+.rs-item.done-item .ico{color:var(--terra)}
+.rs-item.next-item .ico{color:#5A9870}
+
+.diag-retry{
+  background:transparent;border:2px solid var(--border);
+  color:var(--muted2);padding:12px 24px;border-radius:99px;
+  font-size:12px;font-weight:700;cursor:pointer;
+  transition:all .2s;margin-top:8px;width:100%;
+}
+.diag-retry:hover{border-color:var(--terra);color:var(--terra)}
+
+
+.micro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:0}
+.micro-card{background:var(--white);border-radius:16px;border:2px solid var(--border);padding:24px 20px;text-align:center;transition:all .25s;position:relative;overflow:hidden}
+.micro-card:hover{border-color:rgba(196,120,90,.3);transform:translateY(-3px)}
+.micro-avatar{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--terra);margin:0 auto 14px;display:block}
+.micro-name{font-family:"Lora",serif;font-size:16px;font-weight:500;color:var(--text);margin-bottom:4px}
+.micro-handle{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:.12em;color:var(--terra);margin-bottom:10px}
+.micro-nicho{font-size:12px;color:var(--muted2);font-weight:400;line-height:1.5;margin-bottom:14px}
+.micro-tags{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:14px}
+.micro-tag{padding:3px 9px;border-radius:99px;font-size:9px;font-weight:700;background:rgba(196,120,90,.08);color:var(--terra);border:1px solid rgba(196,120,90,.2)}
+.micro-precio{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:14px;padding:8px 12px;background:var(--bg);border-radius:8px}
+.micro-precio strong{color:var(--terra);font-weight:700}
+.micro-btn{display:block;width:100%;padding:10px;border-radius:10px;background:var(--terra);color:white;font-size:11px;font-weight:800;letter-spacing:.04em;text-decoration:none;transition:all .2s;border:none;cursor:pointer;text-align:center}
+.micro-btn:hover{background:var(--terra2)}
+.micro-intro{background:rgba(196,120,90,.06);border:1px solid rgba(196,120,90,.15);border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;gap:14px;align-items:center}
+.micro-intro h4{font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px}
+.micro-intro p{font-size:12.5px;color:var(--text2);font-weight:300;line-height:1.5}
+
+
+/* ── TOKENS ── */
+.tokens-hero{
+  background:var(--terra);border-radius:20px;
+  padding:36px;text-align:center;
+  margin-bottom:20px;position:relative;overflow:hidden;
+}
+.tokens-hero::before{content:'';position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);top:-60px;right:-60px}
+.tokens-hero::after{content:'';position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.05);bottom:-30px;left:-30px}
+.th-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:12px}
+.th-title{font-family:'Lora',serif;font-size:24px;color:white;margin-bottom:6px;position:relative;z-index:1}
+.th-sub{font-size:13px;color:rgba(255,255,255,.75);font-weight:300;position:relative;z-index:1}
+.th-progress{margin-top:20px;position:relative;z-index:1}
+.th-track{height:8px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden;margin-bottom:8px}
+.th-fill{height:100%;background:var(--amarillo,#F0DC8C);border-radius:99px;transition:width .8s cubic-bezier(.16,1,.3,1)}
+.th-count{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.7);letter-spacing:.1em}
+
+/* Token circles */
+.tokens-display{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.token{
+  width:52px;height:52px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;border:2px solid var(--border);
+  background:var(--bg);transition:all .3s;
+  cursor:default;position:relative;
+}
+.token.earned{
+  background:var(--terra);border-color:var(--terra);
+  box-shadow:0 4px 14px rgba(196,120,90,.3);
+}
+.token.earned::after{
+  content:'';position:absolute;inset:-4px;
+  border-radius:50%;border:2px solid rgba(196,120,90,.3);
+}
+
+/* Retos */
+.reto-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.reto{
+  display:flex;gap:14px;align-items:center;
+  padding:16px 18px;
+  background:var(--white);border-radius:14px;
+  border:1px solid var(--border);
+  cursor:pointer;transition:all .2s;
+}
+.reto:hover{border-color:rgba(196,120,90,.25)}
+.reto.done{background:rgba(196,120,90,.06);border-color:rgba(196,120,90,.2)}
+.reto-ico{
+  width:44px;height:44px;border-radius:12px;
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;transition:all .2s;
+}
+.reto.done .reto-ico{background:var(--terra)}
+.reto-info{flex:1}
+.reto-name{font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:3px}
+.reto.done .reto-name{color:var(--terra)}
+.reto-desc{font-size:12px;color:var(--muted);font-weight:300;line-height:1.4}
+.reto-token{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.reto.done .reto-token{background:var(--terra);border-color:var(--terra)}
+
+/* Premio */
+.premio-card{
+  background:var(--bg2);border-radius:16px;
+  border:2px dashed var(--border);
+  padding:28px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.premio-card.unlocked{
+  background:rgba(196,120,90,.06);
+  border:2px solid var(--terra);
+  border-style:solid;
+}
+.premio-lock{font-size:32px;margin-bottom:12px}
+.premio-title{font-family:'Lora',serif;font-size:18px;color:var(--text);margin-bottom:8px}
+.premio-desc{font-size:13px;color:var(--muted2);font-weight:300;line-height:1.6;margin-bottom:16px}
+.premio-btn{
+  padding:12px 28px;border-radius:99px;
+  background:var(--terra);color:white;
+  font-size:12px;font-weight:800;
+  border:none;cursor:pointer;transition:all .2s;
+  opacity:.4;pointer-events:none;
+}
+.premio-btn.active{opacity:1;pointer-events:all}
+.premio-btn.active:hover{background:var(--terra2);transform:translateY(-1px)}
+
+</style>
+  </defs>
+  <g>
+    <path class="st1" d="M489.33,673.57v-4.55h12.71c1.52,0,2.72-.41,3.61-1.22.89-.82,1.33-1.95,1.33-3.42s-.44-2.68-1.33-3.48c-.89-.8-2.09-1.2-3.61-1.2h-12.03v22.89h-5.71v-27.79h17.22c1.55,0,3,.19,4.36.56,1.36.37,2.55.95,3.56,1.72,1.02.77,1.81,1.76,2.38,2.96.57,1.2.86,2.65.86,4.34s-.29,3.08-.86,4.25c-.57,1.17-1.37,2.13-2.38,2.86-1.02.73-2.21,1.26-3.56,1.59-1.36.33-2.81.49-4.36.49h-12.2Z"/>
+    <path class="st1" d="M513.55,673.22h5.8c.11.97.56,1.85,1.35,2.64.79.79,1.83,1.4,3.11,1.85,1.29.44,2.73.67,4.34.67,1.46,0,2.66-.16,3.61-.47.94-.31,1.65-.76,2.1-1.33.46-.57.69-1.26.69-2.06s-.29-1.37-.86-1.78c-.57-.42-1.48-.76-2.71-1.03-1.23-.27-2.85-.55-4.85-.84-1.58-.23-3.06-.55-4.47-.97-1.4-.42-2.64-.95-3.72-1.61-1.07-.66-1.92-1.47-2.53-2.43-.62-.96-.92-2.1-.92-3.42,0-1.63.46-3.06,1.4-4.29.93-1.23,2.31-2.19,4.14-2.88,1.83-.69,4.08-1.03,6.74-1.03,4.01,0,7.09.85,9.26,2.56,2.16,1.7,3.21,4.04,3.16,7.02h-5.58c-.11-1.69-.82-2.91-2.13-3.65-1.3-.74-2.94-1.12-4.92-1.12-1.83,0-3.34.27-4.53.82-1.19.54-1.78,1.48-1.78,2.79,0,.52.14.97.43,1.35.29.39.77.72,1.46,1.01.69.29,1.62.56,2.79.82,1.17.26,2.63.51,4.38.77,1.63.23,3.11.54,4.45.92s2.48.89,3.44,1.5c.96.62,1.7,1.4,2.21,2.34.52.95.77,2.1.77,3.48,0,1.69-.44,3.16-1.31,4.4-.87,1.25-2.22,2.21-4.04,2.9-1.82.69-4.17,1.03-7.07,1.03-2.06,0-3.88-.22-5.45-.67-1.58-.44-2.94-1.04-4.08-1.78-1.15-.74-2.08-1.56-2.79-2.45-.72-.89-1.22-1.78-1.52-2.66-.3-.89-.42-1.69-.36-2.41Z"/>
+    <path class="st1" d="M543.36,654.8h5.71v27.79h-5.71v-27.79Z"/>
+    <path class="st1" d="M586.22,672.58c-.26,2.23-1.05,4.14-2.36,5.71-1.32,1.58-3.11,2.78-5.37,3.61-2.26.83-4.95,1.25-8.07,1.25-2.61,0-4.99-.3-7.15-.9-2.16-.6-4.02-1.5-5.58-2.71-1.56-1.2-2.77-2.7-3.63-4.49-.86-1.79-1.29-3.89-1.29-6.29s.43-4.51,1.29-6.31,2.07-3.31,3.63-4.53c1.56-1.22,3.42-2.13,5.58-2.75,2.16-.62,4.55-.92,7.15-.92,3.12,0,5.82.43,8.1,1.29,2.28.86,4.07,2.08,5.39,3.67,1.32,1.59,2.09,3.51,2.32,5.78h-5.67c-.37-1.2-1-2.24-1.87-3.11-.87-.87-2-1.54-3.37-2-1.37-.46-3.01-.69-4.9-.69-2.35,0-4.41.36-6.18,1.09-1.78.73-3.15,1.8-4.12,3.22-.97,1.42-1.46,3.17-1.46,5.26s.49,3.79,1.46,5.2c.97,1.4,2.35,2.47,4.12,3.2,1.77.73,3.84,1.09,6.18,1.09,1.89,0,3.51-.23,4.88-.69,1.36-.46,2.48-1.12,3.35-1.98.87-.86,1.51-1.86,1.91-3.01h5.67Z"/>
+    <path class="st1" d="M605.68,683.15c-3.69,0-6.85-.58-9.47-1.74-2.62-1.16-4.62-2.81-6.01-4.96-1.39-2.15-2.08-4.72-2.08-7.73s.69-5.63,2.08-7.77c1.39-2.15,3.39-3.8,6.01-4.96s5.78-1.74,9.47-1.74,6.89.58,9.49,1.74c2.61,1.16,4.6,2.81,5.99,4.96,1.39,2.15,2.08,4.74,2.08,7.77s-.69,5.58-2.08,7.73c-1.39,2.15-3.39,3.8-5.99,4.96-2.61,1.16-5.77,1.74-9.49,1.74ZM605.68,678.21c2.29,0,4.3-.34,6.03-1.03,1.73-.69,3.09-1.73,4.08-3.14.99-1.4,1.48-3.18,1.48-5.33s-.49-3.92-1.48-5.33c-.99-1.4-2.35-2.46-4.08-3.16-1.73-.7-3.74-1.05-6.03-1.05s-4.28.35-6.06,1.05c-1.78.7-3.16,1.75-4.17,3.16-1,1.4-1.5,3.18-1.5,5.33s.5,3.92,1.5,5.33c1,1.4,2.39,2.45,4.17,3.14,1.77.69,3.79,1.03,6.06,1.03ZM602.67,651.28l5.84-6.79h7.39l-7.9,6.79h-5.33Z"/>
+    <path class="st1" d="M631.88,654.8v23.02h18.47v4.77h-24.18v-27.79h5.71Z"/>
+    <path class="st1" d="M669.55,683.15c-3.69,0-6.85-.58-9.47-1.74-2.62-1.16-4.62-2.81-6.01-4.96-1.39-2.15-2.08-4.72-2.08-7.73s.69-5.63,2.08-7.77c1.39-2.15,3.39-3.8,6.01-4.96s5.78-1.74,9.47-1.74,6.89.58,9.49,1.74c2.61,1.16,4.6,2.81,5.99,4.96,1.39,2.15,2.08,4.74,2.08,7.77s-.69,5.58-2.08,7.73c-1.39,2.15-3.39,3.8-5.99,4.96-2.61,1.16-5.77,1.74-9.49,1.74ZM669.55,678.21c2.29,0,4.3-.34,6.03-1.03,1.73-.69,3.09-1.73,4.08-3.14.99-1.4,1.48-3.18,1.48-5.33s-.49-3.92-1.48-5.33c-.99-1.4-2.35-2.46-4.08-3.16-1.73-.7-3.74-1.05-6.03-1.05s-4.28.35-6.06,1.05c-1.78.7-3.16,1.75-4.17,3.16-1,1.4-1.5,3.18-1.5,5.33s.5,3.92,1.5,5.33c1,1.4,2.39,2.45,4.17,3.14,1.77.69,3.79,1.03,6.06,1.03Z"/>
+    <path class="st1" d="M706.01,683.15c-2.58,0-4.9-.3-6.98-.9-2.08-.6-3.87-1.5-5.37-2.71-1.5-1.2-2.66-2.69-3.46-4.47-.8-1.78-1.2-3.82-1.2-6.14s.42-4.43,1.27-6.25c.84-1.82,2.05-3.36,3.61-4.62,1.56-1.26,3.42-2.21,5.58-2.86,2.16-.64,4.56-.97,7.19-.97,3.12,0,5.81.44,8.07,1.31,2.26.87,4.04,2.1,5.35,3.67,1.3,1.57,2.04,3.45,2.21,5.63h-5.5c-.37-1.14-.98-2.14-1.83-2.99-.84-.84-1.95-1.5-3.33-1.98s-3.04-.71-4.98-.71c-2.49,0-4.62.4-6.38,1.2-1.76.8-3.1,1.93-4.02,3.39-.92,1.46-1.37,3.18-1.37,5.15s.4,3.57,1.2,4.96c.8,1.39,2.04,2.46,3.71,3.2,1.68.74,3.82,1.12,6.42,1.12,2,0,3.77-.26,5.3-.79,1.53-.53,2.81-1.25,3.84-2.15,1.03-.9,1.76-1.91,2.19-3.03l2.23-.82c-.37,3.69-1.77,6.57-4.19,8.63-2.42,2.06-5.62,3.09-9.6,3.09ZM718.34,682.59c0-.89.06-1.91.17-3.07.11-1.16.26-2.33.43-3.52.17-1.19.33-2.28.47-3.29h-12.71v-3.65h16.58v13.53h-4.94Z"/>
+    <path class="st1" d="M724.05,682.59l13.06-27.79h6.18l13.19,27.79h-6.23l-11.42-25.04h2.75l-11.34,25.04h-6.19ZM730.97,676.53v-4.77h18.38v4.77h-18.38Z"/>
+  </g>
+  <g>
+    <path class="st0" d="M670.08,485.79l-3.3-22.8c-.47-3.26-1.75-6.14-3.99-8.55,4.73-6.22,3.9-8.55,4.54-15.38.81-8.59-5.05-15.18-12.54-17.32-4.62-1.31-9.08-2.64-13.87-3.42l-24.08-3.93-9.66-1.35c.52-3.54.08-6.46-.56-9.75l-1.89-9.77c-.83-4.3-2.16-7.24-3.28-7.26-2.22-.04.05,4.23.15,4.81l3.75,21.93-7.34.63-20.37,3.16c-2.25.35-4.45.84-6.48,1.3-2.46-8.68-8.07-15.36-17.26-17.12-6.79-1.3-13.6-1.91-20.65-1.8-5.75.08-11.61.17-16.9-1.52-.41-1-1.34-2.22-2.11-2.06-.78.16-1.86.76-2.25,1.26-2.68,3.43-3.31,6.71-2.49,10.9l9.27,47.56c.69,3.54,1.77,6.56,4.04,9.41-1.41,2.05-2.99,4.27-3.42,6.77-1.47,8.58-2.69,16.82-3.69,25.48-.22,1.92.06,4.42,1.01,5.85.37.57,2.27.46,2.68-.03,2.88-3.38,3.47-12.89,3.97-17.66.39-3.78,1.87-14.99,4.93-16.7.69-.39,2.02-.18,3.04.08,13.61,3.45,23.31,3.57,36.43,6.94,3.79,5.78,3.07,7.67,4.69,14.38h.77c.1.91.57,3.83,0,4.53l-.62-1.96.79,13.3c.14,2.44.64,21.01,6.15,14.25,1.8-8.66.91-18.5.38-27.72l-1.4-8.11c-.43-.79.07,8.25.3,7.38l.37-1.68c-.25-6.71-2.23-13.84-7.78-17.02-1.69-.97-3.71-1.17-5.58-.63h0c-11.78-3.44-23.04-3.57-35.27-6.73-.19-1.33-.59-2.88-1.55-3.1-1.01-.24-2.63.17-3.67.5-2.24-.96-2.76-3.96-3.26-6.46l-9.83-49.51c-.5-2.54-.27-4.79.66-7.19,15.63,4.83,22.44.58,40.48,4.18,8.6,1.72,12.8,7.34,15.09,15.31,1.62,5.63,3.05,11.12,3.92,17.04.52,3.59,1.17,7,1.95,10.58-2.21,2.29-1.27,4.7-.76,7.31,1.13,5.77,1.43,18.51,7.38,21.15,1.12.5,3.73,1.09,4.91.87l13.2-2.43.6,6.84c.09,1.04,1.54,2.08,2.43,2,.72-.06,2.13-1.04,2.24-1.84l1.14-8.27,13.39-3.21,18.56-4.85,18.6-6.02c1.54-.5,3.34,2.2,3.62,3.65,1.73,8.64,3.57,20.6,4.79,29.34.03.21-.72-5.1-.68-4.83.81.85.11,4.5.91,5.24.75,2.57,2.02,5.11,3.99,4.73,3.06-.59,1.88-7.7,1.44-10.69ZM576.51,489.86l1.11,18.21c.14,2.27.02,4.44-.12,6.91-.84-1.24-1.04-2.92-1.08-4.6-.3-10.72-.32-24.27-4.13-33.57,2.98,3.78,3.95,8.48,4.23,13.05ZM525.5,466.46c-1.78,3.82-3.33,7.48-3.87,11.66l-1.25,9.54-1.12,8.37c-.02.17-.17.95-.17.94,0-.01-.63-.5-.9-.7l3.63-22.72c.42-2.64.84-5.72,3.67-7.09ZM575.96,440.3c-.7-6.67-2.28-12.61-3.85-19.47,1.61-.55,3.6-.81,5.6-1.13l26.46-4.26.21.18c1.06.92,2.56,1.26,3.86.73,1-.41,2.03-.36,3.32-.13l31.68,5.58c3,.53,14.12,3.42,15.84,5.19l-.86,3.73c-7.08,2.17-14.02,4.06-21.46,5.86l-20.37,4.93-18.48,4.25c-6.16,1.42-12.21,2.41-18.54,2.93.27-1.43.46-1.93.3-2.5-.22-.78-2.11-1.01-3.19-.85l-.53-5.04ZM654.86,455.81l-26.61,8.03-18.94,4.72-11.61,2.43-9.73,1.85c-1.84.35-4.64.5-5.99-.31-2.6-1.56-2.93-4.76-3.35-7.38l-1.81-11.13c-.13-.83.41-2.56.86-3.01,3.77.15,7.49.36,11.13-.43l19.07-4.13,36.83-9.01,11.84-3.03c2.64-.68,5.18-1.19,6.16-4.23,2.63,4.81,1.94,9.37,1.42,14.14-.28,2.55-.98,4.65-2.23,6.95-2.2,4.05-5.31-1.2-7.03,4.54ZM667.7,492.61c-.91-3.27-1.38-6.67-1.91-10.31l-1.09-7.53-1.7-10.27c-.49-2.97-1.59-5.3-3.52-7.82,2.88-1.85,4.73,7.14,4.95,8.69l2.88,20.72c.29,2.11,1.16,3.89.4,6.52Z"/>
+    <path class="st0" d="M532.32,333.19c-11.21.85-28.49,1.65-32.59,13.91-3.41,10.23,2.81,27.77,6.23,38.03,1.51,4.54,4.44,8.49,2.42,9.42-2.18,1-4.94-7.7-5.59-9.64-2.78-8.33-5.21-16.48-6.55-25.18-.82-5.29-.72-10.77,1.69-15.56,5.76-11.44,20.69-12.71,31.99-13.74,11.5-1.05,22.74-1.7,34.2-1.28,14.52.52,20.16,10.02,24.92,22.17l7.76,19.8c.79,2.01,1.85,3.8,2.92,5.67,2.49,4.38,10.3,5.87,9.61,7.68-1.2,3.13-13.02-7.88-13.66-9.2-3.45-7.2-6.12-14.51-8.9-22.02-3.58-9.65-9-20.17-20.69-20.95s-22.4.03-33.75.89Z"/>
+    <path class="st0" d="M663.45,424.56l.35-20.76c.1-5.99-2.77-13.38-9.93-14.46-5.74-.87-11.4-1.46-17.27-1.3l-15.4.42c-3.48.1-6.51.19-9.94-.78-2.33-.65-5.97-.73-7.38-2.92-.1-.62.13-1.24.56-1.78,1.47-1.82,4.36-1.54,5.63.43l.62.95c2.4.53,5.14,1.28,7.53,1.23l9.23-.2c4.51-.1,8.79-.63,13.23-.25,4.8.4,9.51.47,14.34,1.45,6.1,1.23,10.6,6.44,11.16,12.64.75,8.3.59,17.16-.06,25.09-.05.63-.9,1.59-1.29,1.85s-1.4-1.01-1.39-1.61Z"/>
+  </g>
+  <g>
+    <g>
+      <path class="st1" d="M374.88,612.87c0,1.9-.98,4.03-2.92,6.39-1.95,2.36-4.49,4.56-7.61,6.59-3.13,2.04-6.73,3.74-10.81,5.1-4.08,1.36-8.21,2.04-12.37,2.04-6.98,0-13.35-1.2-19.11-3.6-5.76-2.4-10.7-5.78-14.82-10.13-4.13-4.35-7.34-9.54-9.65-15.57-2.31-6.03-3.47-12.67-3.47-19.92,0-8.43,1.31-15.73,3.94-21.89,2.63-6.16,6.1-11.29,10.4-15.37,4.3-4.08,9.2-7.09,14.69-9.04,5.48-1.95,11.04-2.92,16.66-2.92,5.08,0,9.74.77,14.01,2.31,4.26,1.54,7.93,3.4,11.01,5.58,3.08,2.18,5.48,4.47,7.21,6.87,1.72,2.4,2.58,4.47,2.58,6.19,0,1.18-.41,2.24-1.22,3.2-.82.95-1.79,1.77-2.92,2.45-1.13.68-2.31,1.22-3.54,1.63-1.22.41-2.2.61-2.92.61-2,0-3.67-.59-5.03-1.77-1.36-1.18-2.81-2.45-4.35-3.81-1.54-1.36-3.4-2.63-5.58-3.81-2.18-1.18-5.08-1.77-8.7-1.77-2.9,0-5.83.52-8.77,1.56-2.95,1.04-5.62,2.79-8.02,5.24-2.4,2.45-4.37,5.64-5.92,9.59-1.54,3.94-2.31,8.82-2.31,14.62,0,4.9.61,9.31,1.84,13.26s2.92,7.32,5.1,10.13c2.18,2.81,4.83,4.96,7.95,6.46,3.13,1.5,6.59,2.24,10.4,2.24,3.26,0,6.03-.52,8.3-1.56,2.26-1.04,4.28-2.2,6.05-3.47,1.77-1.27,3.33-2.42,4.69-3.47,1.36-1.04,2.81-1.56,4.35-1.56,1.36,0,2.7.2,4.01.61,1.31.41,2.47.95,3.47,1.63,1,.68,1.81,1.5,2.45,2.45.63.95.95,1.93.95,2.92Z"/>
+      <path class="st1" d="M444.64,622.12c0,2.72-.73,4.53-2.18,5.44-1.45.91-3.35,1.36-5.71,1.36-1.45,0-2.72-.14-3.81-.41-1.09-.27-2.09-.54-2.99-.82-.91-.27-1.77-.54-2.58-.82-.82-.27-1.68-.41-2.58-.41-1.54,0-3.01.23-4.42.68-1.41.45-2.86.95-4.35,1.5-1.5.54-3.15,1.04-4.96,1.5-1.81.45-3.85.68-6.12.68-7.71,0-13.53-1.95-17.47-5.85-3.94-3.9-5.92-8.84-5.92-14.82s2.54-11.31,7.62-15.71c5.08-4.4,13.14-7.32,24.2-8.77,4.53-.63,7.62-1.68,9.25-3.13,1.63-1.45,2.45-2.95,2.45-4.49,0-2.72-.93-4.9-2.79-6.53-1.86-1.63-4.1-2.45-6.73-2.45s-4.65.48-6.05,1.43c-1.41.95-2.74,1.97-4.01,3.06-1.27,1.09-2.7,2.11-4.28,3.06-1.59.95-3.79,1.43-6.6,1.43-1,0-1.95-.07-2.86-.2-.91-.14-1.75-.41-2.52-.82-.77-.41-1.38-.95-1.84-1.63-.45-.68-.68-1.61-.68-2.79s.41-2.65,1.22-4.42c.82-1.77,2.27-3.44,4.35-5.03,2.08-1.59,4.9-2.94,8.43-4.08,3.54-1.13,8.02-1.7,13.46-1.7,4.71,0,8.97.34,12.78,1.02,3.81.68,7,1.9,9.59,3.67,2.58,1.77,4.58,4.19,5.98,7.27,1.4,3.08,2.11,7.07,2.11,11.97v40.79ZM401.4,608.25c0,2.36.88,4.4,2.65,6.12,1.77,1.72,4.15,2.58,7.14,2.58,1.72,0,3.44-.38,5.17-1.16,1.72-.77,3.24-1.77,4.56-2.99,1.31-1.22,2.38-2.65,3.2-4.28.82-1.63,1.22-3.35,1.22-5.17s-.52-3.35-1.56-4.62c-1.04-1.27-2.79-1.9-5.24-1.9-1.45,0-3.15.25-5.1.75-1.95.5-3.81,1.22-5.58,2.18-1.77.95-3.29,2.13-4.56,3.54-1.27,1.41-1.9,3.06-1.9,4.96Z"/>
+      <path class="st1" d="M555.87,622.25c0,4.71-2.72,7.07-8.16,7.07s-8.16-2.36-8.16-7.07v-28.28c0-6.53-1.11-11.56-3.33-15.09-2.22-3.54-5.46-5.3-9.72-5.3-3.99,0-7.25,1.56-9.79,4.69-2.54,3.13-3.81,8.09-3.81,14.89v29.1c0,4.71-2.72,7.07-8.16,7.07s-8.16-2.36-8.16-7.07v-30.73c0-5.89-1.09-10.4-3.26-13.53-2.18-3.13-5.44-4.69-9.79-4.69s-7.93,1.68-10.2,5.03c-2.27,3.35-3.4,8.02-3.4,14.01v29.92c0,4.71-2.72,7.07-8.16,7.07s-8.16-2.63-8.16-7.89v-52.22c0-2.36.72-4.17,2.18-5.44,1.45-1.27,3.62-1.9,6.53-1.9,2.08,0,4.33.32,6.73.95,2.4.64,4.42.95,6.05.95,1.45,0,2.86-.18,4.22-.54,1.36-.36,2.72-.77,4.08-1.22,1.36-.45,2.81-.86,4.35-1.22,1.54-.36,3.31-.54,5.3-.54,2.54,0,4.71.32,6.53.95,1.81.64,3.47,1.36,4.96,2.18,1.5.82,2.9,1.54,4.22,2.18,1.31.64,2.79.95,4.42.95,1.45,0,2.86-.32,4.22-.95,1.36-.63,2.88-1.36,4.56-2.18,1.68-.82,3.6-1.54,5.78-2.18,2.18-.63,4.76-.95,7.75-.95,7.07,0,12.24,1.68,15.5,5.03,3.26,3.35,4.9,8.29,4.9,14.82v42.15Z"/>
+      <path class="st1" d="M586.6,540.39c0,3.45-1.07,5.76-3.2,6.94-2.13,1.18-4.69,1.77-7.68,1.77-3.99,0-6.75-.77-8.29-2.31-1.54-1.54-2.31-3.49-2.31-5.85,0-3.35,1.04-5.64,3.13-6.87,2.08-1.22,4.58-1.84,7.48-1.84,3.99,0,6.8.77,8.43,2.31,1.63,1.54,2.45,3.49,2.45,5.85ZM578.17,556.98c5.8,0,8.7,3.99,8.7,11.97v50.86c0,6.53-3.63,9.79-10.88,9.79-4.62,0-7.59-1-8.91-2.99-1.32-1.99-1.97-4.98-1.97-8.97v-50.86c0-2.99.75-5.37,2.24-7.14,1.5-1.77,3.47-2.65,5.91-2.65h4.9Z"/>
+    </g>
+    <g>
+      <path class="st1" d="M633.47,534.41c2.45,0,4.42.75,5.92,2.24s2.24,3.47,2.24,5.91v54.94c0,3.08.27,5.49.82,7.21.54,1.72,1.72,3.01,3.54,3.88,1.81.86,4.46,1.41,7.95,1.63,3.49.23,8.18.34,14.07.34,3.72,0,6.55.57,8.5,1.7,1.95,1.13,2.92,3.74,2.92,7.82,0,6.17-3.17,9.25-9.52,9.25h-42.7c-5.44,0-8.16-3.17-8.16-9.52v-77.24c0-2.18.72-4.08,2.18-5.71,1.45-1.63,3.26-2.45,5.44-2.45h6.8Z"/>
+      <path class="st1" d="M760.34,593.56c0,5.26-.79,10.13-2.38,14.62-1.59,4.49-3.94,8.39-7.07,11.69-3.13,3.31-7.09,5.91-11.9,7.82-4.81,1.9-10.38,2.86-16.73,2.86-5.17,0-9.99-.79-14.48-2.38-4.49-1.59-8.36-3.92-11.63-7-3.26-3.08-5.85-6.91-7.75-11.49-1.9-4.58-2.86-9.86-2.86-15.84,0-6.34,1.04-11.83,3.13-16.45,2.08-4.62,4.87-8.43,8.36-11.42,3.49-2.99,7.46-5.21,11.9-6.66,4.44-1.45,9.06-2.18,13.87-2.18,4.35,0,8.75.64,13.19,1.9,4.44,1.27,8.47,3.33,12.1,6.19,3.62,2.86,6.57,6.62,8.84,11.29,2.26,4.67,3.4,10.36,3.4,17.07ZM704.86,593.56c0,7.25,1.68,12.83,5.03,16.73,3.35,3.9,7.75,5.85,13.19,5.85,2.54,0,4.92-.56,7.14-1.7,2.22-1.13,4.12-2.7,5.71-4.69,1.58-1.99,2.83-4.37,3.74-7.14.91-2.76,1.36-5.78,1.36-9.04,0-3.08-.39-5.94-1.16-8.57-.77-2.63-1.9-4.92-3.4-6.87-1.5-1.95-3.38-3.49-5.64-4.62-2.27-1.13-4.85-1.7-7.75-1.7-2.54,0-4.92.48-7.14,1.43-2.22.95-4.15,2.33-5.78,4.15-1.63,1.81-2.92,4.08-3.88,6.8-.95,2.72-1.43,5.85-1.43,9.38ZM737.09,537.4c0,1.09-.57,2.36-1.7,3.81-1.13,1.45-2.65,2.99-4.56,4.62-1.54,1.36-3.26,2.7-5.17,4.01-1.9,1.32-4.17,1.97-6.8,1.97-1.63,0-2.9-.36-3.81-1.09-.91-.72-1.36-1.72-1.36-2.99,0-.82.36-2.06,1.09-3.74.72-1.68,1.9-3.42,3.54-5.24,1.27-1.36,2.67-2.56,4.22-3.6,1.54-1.04,4.03-1.56,7.48-1.56,2.63,0,4.46.36,5.51,1.09,1.04.73,1.56,1.63,1.56,2.72Z"/>
+      <path class="st1" d="M908.69,588.8c0,3.17-.73,5.28-2.18,6.32-1.45,1.04-3.81,1.56-7.07,1.56h-28.28c-6.35,0-9.52,2.36-9.52,7.07,0,1.54.41,3.04,1.22,4.49.82,1.45,1.88,2.79,3.2,4.01,1.31,1.22,2.81,2.2,4.49,2.92,1.68.73,3.42,1.09,5.24,1.09,2.9,0,5.28-.5,7.14-1.5,1.86-1,3.49-2.08,4.9-3.26,1.4-1.18,2.74-2.26,4.01-3.26,1.27-1,2.81-1.5,4.62-1.5,1.09,0,2.18.23,3.26.68,1.09.45,2.08,1.02,2.99,1.7.91.68,1.63,1.43,2.18,2.24.54.82.82,1.63.82,2.45,0,1.09-.61,2.56-1.84,4.42-1.22,1.86-3.08,3.69-5.58,5.51-2.49,1.81-5.64,3.38-9.45,4.69-3.81,1.31-8.25,1.97-13.33,1.97s-9.59-.75-13.8-2.24c-4.22-1.5-7.89-3.74-11.01-6.73-3.13-2.99-5.58-6.68-7.34-11.08-1.77-4.4-2.65-9.49-2.65-15.3,0-6.89.97-12.78,2.92-17.68,1.95-4.9,4.53-8.86,7.75-11.9,3.22-3.04,6.89-5.26,11.01-6.66,4.12-1.4,8.41-2.11,12.85-2.11,4.98,0,9.25.66,12.78,1.97,3.54,1.32,6.55,3.01,9.04,5.1,2.49,2.09,4.49,4.4,5.98,6.93,1.5,2.54,2.67,4.99,3.54,7.34.86,2.36,1.43,4.51,1.7,6.46.27,1.95.41,3.38.41,4.28ZM862.73,579.55c0,4.17,3.72,6.26,11.15,6.26,9.06,0,13.6-1.9,13.6-5.71,0-1.09-.34-2.18-1.02-3.26s-1.56-2.08-2.65-2.99c-1.09-.91-2.38-1.63-3.88-2.18-1.5-.54-3.06-.82-4.69-.82-1.36,0-2.79.23-4.28.68-1.5.45-2.86,1.07-4.08,1.84-1.22.77-2.22,1.7-2.99,2.79-.77,1.09-1.16,2.22-1.16,3.4Z"/>
+      <path class="st1" d="M969.75,558.89c2.45,0,4.46.61,6.05,1.84,1.58,1.22,2.38,3.15,2.38,5.78,0,2.09-.11,3.85-.34,5.3-.23,1.45-.59,2.72-1.09,3.81-.5,1.09-1.13,2.09-1.9,2.99-.77.91-1.65,1.86-2.65,2.86l-16.59,16.59c-5.62,5.62-8.43,9.25-8.43,10.88,0,3.81,2.54,5.71,7.62,5.71h14.96c2.72,0,4.76.73,6.12,2.18,1.36,1.45,2.04,3.26,2.04,5.44,0,4.71-3.26,7.07-9.79,7.07h-44.6c-2.45,0-4.47-.61-6.05-1.84-1.59-1.22-2.38-3.15-2.38-5.78v-3.81c0-3.44,1.99-7.16,5.98-11.15l22.3-22.57c1-1,1.74-1.9,2.24-2.72.5-.82.75-1.9.75-3.26,0-1.63-.8-2.81-2.38-3.54-1.59-.72-3.69-1.09-6.32-1.09h-10.06c-1.9,0-3.79-.54-5.64-1.63-1.86-1.09-2.79-2.99-2.79-5.71,0-2.18.66-3.94,1.97-5.3,1.31-1.36,3.28-2.04,5.92-2.04h42.7Z"/>
+      <path class="st1" d="M832.61,578.4c-1.41-4.3-3.4-7.98-5.98-11.01-2.58-3.04-5.71-5.37-9.38-7-3.67-1.63-7.73-2.45-12.17-2.45-2.45,0-4.47.18-6.05.54-1.59.36-2.97.75-4.15,1.16-1.18.41-2.29.77-3.33,1.09-1.04.32-2.24.48-3.6.48-1.9,0-3.72-.27-5.44-.82-1.72-.54-3.81-.82-6.26-.82-5.62,0-8.43,2.63-8.43,7.89v113.87c0,5.12,4.15,9.26,9.26,9.26s9.26-4.15,9.26-9.26l-.48-44.91c.23-2.87.87-4.9,1.94-6.07,1.36-1.5,3.13-2.24,5.3-2.24.72,0,2.27.32,4.62.95,2.36.63,4.98.95,7.89.95,9.43,0,16.63-3.26,21.62-9.79,4.98-6.53,7.48-15.68,7.48-27.47,0-5.26-.7-10.04-2.11-14.35ZM816.91,598.86c-.27,2.72-.95,5.44-2.04,8.16-1.09,2.72-2.7,5.1-4.83,7.14-2.13,2.04-5.05,3.06-8.77,3.06-2.36,0-4.49-.56-6.39-1.7-1.9-1.13-3.56-2.72-4.96-4.76-1.41-2.04-2.49-4.46-3.26-7.27-.77-2.81-1.16-5.94-1.16-9.38,0-7.34,1.56-13.08,4.69-17.2,3.13-4.12,7-6.19,11.63-6.19,2.54,0,4.76.57,6.66,1.7,1.9,1.13,3.51,2.7,4.83,4.69,1.31,2,2.31,4.33,2.99,7,.68,2.67,1.02,5.55,1.02,8.63,0,1.36-.14,3.4-.41,6.12Z"/>
+    </g>
+  </g>
+</svg></div>
+      <div class="bh-info">
+        <h2>Cami <em>López</em></h2>
+        <div class="bh-role">Psicóloga · Acompañamiento Virtual</div>
+        <div class="bh-esencia">"El cuidado como práctica.<br>Las herramientas como camino."</div>
+      </div>
+    </div>
+    <div class="brand-stats">
+      <div class="bstat"><span class="bstat-label">Nivel</span><span class="bstat-val">Lanzamiento</span></div>
+      <div class="bstat"><span class="bstat-label">Entregado</span><span class="bstat-val">Hoy · 48h</span></div>
+      <div class="bstat"><span class="bstat-label">Industria</span><span class="bstat-val">Salud mental</span></div>
+      <div class="bstat"><span class="bstat-label">Mercado</span><span class="bstat-val">Colombia</span></div>
+      <div class="bstat"><span class="bstat-label">Exclusividad</span><span class="bstat-val">✦ Solo tuya</span></div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:8px">
+    <div class="clabel" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px">Tus módulos</div>
+  </div>
+  <div class="modules-grid">
+    <div class="module-card" onclick="show('identidad',document.querySelector('[onclick*=identidad]'))">
+      <div class="mc-ico">🎨</div>
+      <div><div class="mc-name">Identidad Visual</div><div class="mc-status ok">Logo · Paleta · Tipografía</div></div>
+    </div>
+    <div class="module-card" onclick="show('brandboard',document.querySelector('[onclick*=brandboard]'))">
+      <div class="mc-ico">🖼</div>
+      <div><div class="mc-name">Brandboard</div><div class="mc-status ok">Moodboard visual</div></div>
+    </div>
+    <div class="module-card" onclick="show('estrategia',document.querySelector('[onclick*=estrategia]'))">
+      <div class="mc-ico">🧭</div>
+      <div><div class="mc-name">Estrategia</div><div class="mc-status ok">Propósito · Valores · Posición</div></div>
+    </div>
+    <div class="module-card" onclick="show('mensajes',document.querySelector('[onclick*=mensajes]'))">
+      <div class="mc-ico">💬</div>
+      <div><div class="mc-name">Mensajes</div><div class="mc-status ok">Tono · Voz · Copy clave</div></div>
+    </div>
+    <div class="module-card" onclick="show('radar',document.querySelector('[onclick*=radar]'))">
+      <div class="mc-ico">📡</div>
+      <div><div class="mc-name">Radar de Marca</div><div class="mc-status new">Nuevo</div></div>
+    </div>
+    <div class="module-card" onclick="show('kit',document.querySelector('[onclick*=kit]'))">
+      <div class="mc-ico">🚀</div>
+      <div><div class="mc-name">Kit de Lanzamiento</div><div class="mc-status ok">Acciones + Layouts</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ IDENTIDAD ══ -->
+<div class="panel" id="p-identidad">
+  <div class="panel-header">
+    <div class="ph-label">Identidad Visual</div>
+    <h1 class="ph-title">Tu <em>sistema visual</em></h1>
+    <p class="ph-desc">Logo, paleta de color y tipografías. El lenguaje visual de tu marca.</p>
+  </div>
+
+  <!-- LOGO -->
+  <div class="clabel mb" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase">Logo · aplicaciones</div>
+  <div class="g3 mb">
+    <div style="background:var(--bg);border-radius:12px;height:110px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
+      <img style="display:none" alt="Logo" style="height:56px">
+    </div>
+    <div style="background:var(--terra);border-radius:12px;height:110px;display:flex;align-items:center;justify-content:center;border:1px solid var(--terra)">
+      <img style="display:none" alt="Logo" style="height:56px;filter:brightness(0) invert(1);opacity:.9">
+    </div>
+    <div style="background:var(--sidebar);border-radius:12px;height:110px;display:flex;align-items:center;justify-content:center;border:1px solid var(--sidebar-border)">
+      <img style="display:none" alt="Logo" style="height:56px;filter:brightness(0) saturate(100%) invert(65%) sepia(25%) saturate(400%) hue-rotate(330deg);opacity:.85">
+    </div>
+  </div>
+
+  <!-- PALETA -->
+  <div class="clabel mb" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase">Paleta de color</div>
+  <div class="paleta-row mb">
+    <div class="swatch"><div class="sw-color" style="background:#F5F2EE;border-bottom:1px solid var(--border)"></div><div class="sw-info"><div class="sw-name">Base cálida</div><div class="sw-hex">#F5F2EE · Fondo</div></div></div>
+    <div class="swatch"><div class="sw-color" style="background:#C4785A"></div><div class="sw-info"><div class="sw-name">Terracota</div><div class="sw-hex">#C4785A · Principal</div></div></div>
+    <div class="swatch"><div class="sw-color" style="background:#7A9BB5"></div><div class="sw-info"><div class="sw-name">Azul suave</div><div class="sw-hex">#7A9BB5 · Apoyo</div></div></div>
+    <div class="swatch"><div class="sw-color" style="background:#C4908A"></div><div class="sw-info"><div class="sw-name">Rosado</div><div class="sw-hex">#C4908A · Apoyo</div></div></div>
+    <div class="swatch"><div class="sw-color" style="background:#2A1F1A"></div><div class="sw-info"><div class="sw-name">Texto</div><div class="sw-hex">#2A1F1A · Cuerpo</div></div></div>
+  </div>
+
+  <!-- TIPOGRAFÍA -->
+  <div class="clabel" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px">Tipografías</div>
+  <div class="g2">
+    <div class="tipo-demo">
+      <div class="td-serif">El cuidado<br><em style="color:var(--terra)">que sostiene.</em></div>
+      <div class="td-mono">Lora Serif · Títulos y citas</div>
+    </div>
+    <div class="tipo-demo">
+      <div class="td-sans">Acompañamiento<br>emocional virtual</div>
+      <div class="td-mono">DM Sans Light · Cuerpo de texto</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BRANDBOARD ══ -->
+<div class="panel" id="p-brandboard">
+  <div class="panel-header">
+    <div class="ph-label">Brandboard</div>
+    <h1 class="ph-title">El alma <em>visual</em></h1>
+    <p class="ph-desc">El moodboard de tu marca. La personalidad visual traducida en imágenes, texturas y atmósfera.</p>
+  </div>
+
+  <div class="brandboard mb">
+    <div class="bb-header">
+      <div class="bb-title">Cami López · Brandboard</div>
+      <div class="bb-sub">Silencioso · Cálido · Contemporáneo</div>
+    </div>
+    <div class="bb-grid">
+      <!-- Celda grande terracota -->
+      <div class="bb-cell" style="background:var(--terra)">
+        <img src="PSIC.png" onerror="this.style.display='none'" alt="" style="height:130px;opacity:.7;filter:brightness(0) invert(1)">
+        <div class="bb-text">El espacio</div>
+      </div>
+      <!-- Celda tipografía -->
+      <div class="bb-cell" style="background:var(--bg)">
+        <div style="text-align:center;padding:20px">
+          <div style="font-family:'Lora',serif;font-size:24px;font-style:italic;color:var(--text)">Cuidado</div>
+          <div style="width:30px;height:1px;background:var(--terra);margin:10px auto"></div>
+          <div style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:300;color:var(--muted)">que sostiene</div>
+        </div>
+      </div>
+      <!-- Celda color -->
+      <div class="bb-cell" style="background:var(--sidebar)">
+        <div style="display:flex;flex-direction:column;gap:6px;padding:16px">
+          <div style="width:60px;height:12px;border-radius:4px;background:var(--terra)"></div>
+          <div style="width:45px;height:12px;border-radius:4px;background:var(--azul)"></div>
+          <div style="width:50px;height:12px;border-radius:4px;background:var(--rosado)"></div>
+          <div style="width:30px;height:12px;border-radius:4px;background:var(--bg)"></div>
+        </div>
+        <div class="bb-text">Paleta</div>
+      </div>
+      <!-- Fila 2 -->
+      <div class="bb-cell span2" style="background:var(--bg2)">
+        <div style="padding:20px 28px">
+          <div style="font-family:'Lora',serif;font-size:15px;font-style:italic;color:var(--text2);line-height:1.6;max-width:300px">"Este espacio es, ante todo, cuidado. Cuidado para estar, para escuchar y para acompañar."</div>
+        </div>
+      </div>
+      <div class="bb-cell" style="background:var(--rosado);opacity:.6">
+        <div style="text-align:center">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:white;opacity:.8">Calidez · Rigor</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="card">
+      <div class="clabel">Atmósfera</div>
+      <p>Silenciosa pero no vacía. Íntima sin ser oscura. El espacio en blanco es parte del diseño.</p>
+    </div>
+    <div class="card">
+      <div class="clabel">Fotografía</div>
+      <p>Personas reales, momentos cotidianos. Luz natural suave. Sin poses ni dramatización.</p>
+    </div>
+    <div class="card">
+      <div class="clabel">Ilustración</div>
+      <p>El sillón como símbolo. Línea suelta, cálida. El espacio terapéutico sin ser clínico.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ESTRATEGIA ══ -->
+<div class="panel" id="p-estrategia">
+  <div class="panel-header">
+    <div class="ph-label">Estrategia de marca</div>
+    <h1 class="ph-title">El <em>corazón</em> de tu marca</h1>
+    <p class="ph-desc">Propósito, misión, visión, valores y posicionamiento. La brújula de cada decisión.</p>
+  </div>
+
+  <div class="manifiesto-card mb">
+    <div class="mc-quote">"El cuidado y la contención es lo que ha sostenido las sociedades a través de los tiempos. Desde la terapia cognitivo conductual, trabajamos en identificar las creencias que se instalaron y adquirir nuevos lentes para relacionarte con ellas desde otros lugares. Este espacio es, ante todo, cuidado."</div>
+    <div class="mc-firma">— Manifiesto · Cami López · Psicóloga</div>
+  </div>
+
+  <div class="prop-grid mb">
+    <div class="prop-card">
+      <div class="prop-label">Propósito</div>
+      <div class="prop-text">Acompañar a personas jóvenes en el proceso de identificar las creencias y ciclos aprendidos que ya no las representan, y construir herramientas concretas para relacionarse con ellos desde otros lugares.</div>
+    </div>
+    <div class="prop-card">
+      <div class="prop-label">Misión</div>
+      <div class="prop-text">Ofrecer acompañamiento psicológico virtual desde la terapia cognitivo conductual para adultos jóvenes en Colombia, con un enfoque cálido, contemporáneo y orientado a la acción.</div>
+    </div>
+    <div class="prop-card">
+      <div class="prop-label">Visión</div>
+      <div class="prop-text">Ser un espacio de referencia para adultos jóvenes colombianos que entienden el cuidado emocional como parte de vivir bien — no como respuesta a una crisis, sino como práctica sostenida.</div>
+    </div>
+    <div class="prop-card">
+      <div class="prop-label">Esencia</div>
+      <div class="prop-text" style="font-family:'Lora',serif;font-size:16px;font-style:italic;color:var(--terra)">"Cuidado que sostiene. Herramientas que transforman."</div>
+    </div>
+  </div>
+
+  <div class="card mb">
+    <div class="clabel">Valores</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+      <div style="display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--text2)"><span style="color:var(--terra);flex-shrink:0">—</span>El cuidado como práctica colectiva e histórica</div>
+      <div style="display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--text2)"><span style="color:var(--terra);flex-shrink:0">—</span>La contención como herramienta, no como debilidad</div>
+      <div style="display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--text2)"><span style="color:var(--terra);flex-shrink:0">—</span>La acción concreta sobre la introspección indefinida</div>
+      <div style="display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--text2)"><span style="color:var(--terra);flex-shrink:0">—</span>La calidez como condición del vínculo terapéutico</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Posicionamiento</div>
+    <p style="margin-bottom:14px">En un mercado de plataformas que despersonalizan y consultorios que distancian, Cami López es la psicóloga con nombre, con voz y con criterio propio.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span class="pill t">Cálida y estructurada</span>
+      <span class="pill t">Virtual · Colombia</span>
+      <span class="pill t">18–35 años</span>
+      <span class="pill g">Orientada a la acción</span>
+      <span class="pill m">TCC</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MENSAJES ══ -->
+<div class="panel" id="p-mensajes">
+  <div class="panel-header">
+    <div class="ph-label">Mensajes y tono</div>
+    <h1 class="ph-title">Cómo habla<br><em>tu marca</em></h1>
+    <p class="ph-desc">Los mensajes clave, el vocabulario y el tono de comunicación de Cami López.</p>
+  </div>
+
+  <div class="msg-list mb">
+    <div class="msg-item hero-msg">
+      <div class="mi-tipo">Esencia</div>
+      <div class="mi-text">"El cuidado como práctica. Las herramientas como camino."</div>
+    </div>
+    <div class="msg-item">
+      <div class="mi-tipo">Manifiesto</div>
+      <div class="mi-text">"El cuidado y la contención es lo que ha sostenido las sociedades a través de los tiempos."</div>
+    </div>
+    <div class="msg-item">
+      <div class="mi-tipo">Proceso</div>
+      <div class="mi-text">"Las conductas aprendidas no son tu identidad — son ciclos que se pueden desinstalar."</div>
+    </div>
+    <div class="msg-item">
+      <div class="mi-tipo">El espacio</div>
+      <div class="mi-text">"Este espacio es, ante todo, cuidado. Para estar, para escuchar y para acompañar."</div>
+    </div>
+    <div class="msg-item">
+      <div class="mi-tipo">Enfoque</div>
+      <div class="mi-text">"Una terapia orientada no solo al ser, sino al hacer."</div>
+    </div>
+  </div>
+
+  <div class="palabras-row">
+    <div class="pw-group pw-usa">
+      <div class="pw-label">Usa estas palabras</div>
+      <div class="pw-tags">
+        <span class="pw-tag">Contención</span><span class="pw-tag">Sostén</span>
+        <span class="pw-tag">Herramientas</span><span class="pw-tag">Ciclos</span>
+        <span class="pw-tag">Habitar</span><span class="pw-tag">Acompañamiento</span>
+        <span class="pw-tag">Conductas aprendidas</span>
+      </div>
+    </div>
+    <div class="pw-group pw-evita">
+      <div class="pw-label">Evita estas palabras</div>
+      <div class="pw-tags">
+        <span class="pw-tag">Sanar</span><span class="pw-tag">Tóxico</span>
+        <span class="pw-tag">Despertar</span><span class="pw-tag">Vibra</span>
+        <span class="pw-tag">Empoderar</span><span class="pw-tag">Todo va a estar bien</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Tono de comunicación</div>
+    <p>Fluido, claro, sin fragmentaciones innecesarias. Cami no habla en bullets ni en listas de tips. Habla en párrafos, en ideas completas. Su comunicación tiene el tono de alguien que piensa mientras habla — no de alguien que recita.</p>
+  </div>
+</div>
+
+<!-- ══ RADAR ══ -->
+<div class="panel" id="p-radar">
+  <div class="panel-header">
+    <div class="ph-label">Radar de marca</div>
+    <h1 class="ph-title">Tu posición<br>en el <em>mercado</em></h1>
+    <p class="ph-desc">Dónde está Cami López frente a su competencia y cómo se diferencia.</p>
+  </div>
+
+  <div class="radar-wrap mb">
+    <div class="radar-chart">
+      <svg width="240" height="240" viewBox="0 0 240 240">
+        <defs>
+          <polygon id="hex" points="120,20 210,70 210,170 120,220 30,170 30,70"/>
+        </defs>
+        <!-- Capas de fondo -->
+        <polygon points="120,90 150,105 150,135 120,150 90,135 90,105" fill="none" stroke="rgba(196,120,90,0.1)" stroke-width="1"/>
+        <polygon points="120,65 165,92 165,148 120,175 75,148 75,92" fill="none" stroke="rgba(196,120,90,0.1)" stroke-width="1"/>
+        <polygon points="120,40 180,79 180,161 120,200 60,161 60,79" fill="none" stroke="rgba(196,120,90,0.1)" stroke-width="1"/>
+        <polygon points="120,15 195,66 195,174 120,225 45,174 45,66" fill="none" stroke="rgba(196,120,90,0.08)" stroke-width="1"/>
+        <!-- Ejes -->
+        <line x1="120" y1="15" x2="120" y2="225" stroke="rgba(196,120,90,0.1)" stroke-width="1"/>
+        <line x1="45" y1="66" x2="195" y2="174" stroke="rgba(196,120,90,0.1)" stroke-width="1"/>
+        <line x1="195" y1="66" x2="45" y2="174" stroke="rgba(196,120,90,0.1)" stroke-width="1"/>
+        <!-- Área Cami -->
+        <polygon points="120,32 185,82 178,162 120,200 62,155 60,82"
+          fill="rgba(196,120,90,0.15)" stroke="var(--terra)" stroke-width="2"/>
+        <!-- Puntos -->
+        <circle cx="120" cy="32" r="4" fill="var(--terra)"/>
+        <circle cx="185" cy="82" r="4" fill="var(--terra)"/>
+        <circle cx="178" cy="162" r="4" fill="var(--terra)"/>
+        <circle cx="120" cy="200" r="4" fill="var(--terra)"/>
+        <circle cx="62" cy="155" r="4" fill="var(--terra)"/>
+        <circle cx="60" cy="82" r="4" fill="var(--terra)"/>
+        <!-- Labels -->
+        <text x="120" y="10" text-anchor="middle" font-family="DM Mono" font-size="8" fill="var(--muted)" letter-spacing="1">CALIDEZ</text>
+        <text x="208" y="80" text-anchor="start" font-family="DM Mono" font-size="8" fill="var(--muted)" letter-spacing="1">RIGOR</text>
+        <text x="208" y="170" text-anchor="start" font-family="DM Mono" font-size="8" fill="var(--muted)" letter-spacing="1">DIGITAL</text>
+        <text x="120" y="236" text-anchor="middle" font-family="DM Mono" font-size="8" fill="var(--muted)" letter-spacing="1">IDENTIDAD</text>
+        <text x="32" y="170" text-anchor="end" font-family="DM Mono" font-size="8" fill="var(--muted)" letter-spacing="1">ACCESO</text>
+        <text x="32" y="80" text-anchor="end" font-family="DM Mono" font-size="8" fill="var(--muted)" letter-spacing="1">PRECIO</text>
+      </svg>
+    </div>
+    <div class="radar-legend">
+      <div class="rl-title">Posicionamiento de Cami López</div>
+      <div class="rl-item"><span class="rl-name">Calidez del vínculo</span><div class="rl-bar"><div class="rl-track"><div class="rl-fill" style="width:92%"></div></div><span class="rl-val">92</span></div></div>
+      <div class="rl-item"><span class="rl-name">Rigor profesional</span><div class="rl-bar"><div class="rl-track"><div class="rl-fill" style="width:88%"></div></div><span class="rl-val">88</span></div></div>
+      <div class="rl-item"><span class="rl-name">Experiencia digital</span><div class="rl-bar"><div class="rl-track"><div class="rl-fill" style="width:85%"></div></div><span class="rl-val">85</span></div></div>
+      <div class="rl-item"><span class="rl-name">Identidad de marca</span><div class="rl-bar"><div class="rl-track"><div class="rl-fill" style="width:95%"></div></div><span class="rl-val">95</span></div></div>
+      <div class="rl-item"><span class="rl-name">Accesibilidad</span><div class="rl-bar"><div class="rl-track"><div class="rl-fill" style="width:78%"></div></div><span class="rl-val">78</span></div></div>
+      <div class="rl-item"><span class="rl-name">Precio competitivo</span><div class="rl-bar"><div class="rl-track"><div class="rl-fill" style="width:72%"></div></div><span class="rl-val">72</span></div></div>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="card terra">
+      <div class="clabel">Diferenciador clave</div>
+      <h3>Identidad propia</h3>
+      <p>En un mercado de plataformas impersonales, Cami López tiene nombre, voz y criterio propio. Eso genera un tipo de confianza que ninguna app puede replicar.</p>
+    </div>
+    <div class="card">
+      <div class="clabel">Competencia principal</div>
+      <h3>Plataformas digitales</h3>
+      <p>Cuéntame, BetterHelp, Yana. Accesibles pero impersonales. El psicólogo es intercambiable — la relación terapéutica se diluye.</p>
+    </div>
+    <div class="card">
+      <div class="clabel">Oportunidad detectada</div>
+      <h3>Adultos jóvenes escépticos</h3>
+      <p>Consumen contenido de salud mental pero rechazan lo motivacional vacío. Buscan algo honesto. Cami es esa respuesta.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ KIT ══ -->
+<div class="panel" id="p-kit">
+  <div class="panel-header">
+    <div class="ph-label">Kit de Lanzamiento</div>
+    <h1 class="ph-title">Lista para<br><em>arrancar</em></h1>
+    <p class="ph-desc">Todo lo que necesitas para lanzar tu marca al mundo. Acciones concretas y layouts listos para usar.</p>
+  </div>
+
+  <div class="kit-grid mb">
+    <div class="card">
+      <div class="clabel">Checklist de lanzamiento</div>
+      <div class="checklist">
+        <div class="check-item done" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>Configurar perfil de Instagram con bio y foto</span></div>
+        <div class="check-item done" onclick="toggleCheck(this)"><div class="check-box">✓</div><span>Publicar primer post de presentación</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span>Crear highlight "Sobre mí" en Instagram</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span>Publicar 3 posts educativos de la primera semana</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span>Configurar Calendly o sistema de agendamiento</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span>Primer Reel — presentación del enfoque</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span>Activar WhatsApp Business con mensaje de bienvenida</span></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span>Compartir con red de contactos el lanzamiento</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Primeras acciones de venta</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+        <div style="padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--terra);margin-bottom:4px">Semana 1</div>
+          <div style="font-size:12.5px;color:var(--text2)">Lanzamiento de perfil + 3 posts de posicionamiento. Meta: 50 nuevos seguidores.</div>
+        </div>
+        <div style="padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--terra);margin-bottom:4px">Semana 2</div>
+          <div style="font-size:12.5px;color:var(--text2)">Primera consulta gratuita de 20min. Objetivo: 3 consultas iniciales + 1 paciente regular.</div>
+        </div>
+        <div style="padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--terra);margin-bottom:4px">Semana 3–4</div>
+          <div style="font-size:12.5px;color:var(--text2)">Contenido educativo constante. Primer testimonio. Meta: 5 pacientes activos.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="clabel" style="color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px">Layouts listos para usar</div>
+  <div class="layout-grid">
+    <div class="layout-item">
+      <div class="layout-preview" style="background:var(--terra)">
+        <div style="text-align:center;padding:16px">
+          <div style="font-family:'Lora',serif;font-size:14px;font-style:italic;color:white;line-height:1.4">"El cuidado como práctica."</div>
+          <div style="width:24px;height:1px;background:rgba(255,255,255,.4);margin:8px auto"></div>
+          <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)">Cami López</div>
+        </div>
+      </div>
+      <div class="layout-label">Post cita<div class="layout-type">Instagram feed</div></div>
+    </div>
+    <div class="layout-item">
+      <div class="layout-preview" style="background:var(--bg)">
+        <div style="text-align:center;padding:16px">
+          <img style="display:none" alt="" style="height:40px;margin-bottom:8px">
+          <div style="font-size:11px;color:var(--text2);font-weight:500">Psicóloga virtual</div>
+          <div style="font-size:10px;color:var(--muted)">Colombia · TCC</div>
+        </div>
+      </div>
+      <div class="layout-label">Presentación<div class="layout-type">Instagram Story</div></div>
+    </div>
+    <div class="layout-item">
+      <div class="layout-preview" style="background:var(--sidebar)">
+        <div style="padding:16px">
+          <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:rgba(196,120,90,.7);margin-bottom:6px">Hoy hablamos de</div>
+          <div style="font-family:'Lora',serif;font-size:14px;color:white;font-style:italic">Conductas aprendidas</div>
+          <div style="width:20px;height:1px;background:var(--terra);margin-top:8px"></div>
+        </div>
+      </div>
+      <div class="layout-label">Educativo<div class="layout-type">Reel · TikTok</div></div>
+    </div>
+    <div class="layout-item">
+      <div class="layout-preview" style="background:var(--bg2)">
+        <div style="text-align:center;padding:16px">
+          <div style="font-size:24px;margin-bottom:6px">🌿</div>
+          <div style="font-family:'Lora',serif;font-size:12px;font-style:italic;color:var(--text2)">Espacio de cuidado</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">Agenda tu consulta</div>
+        </div>
+      </div>
+      <div class="layout-label">CTA consulta<div class="layout-type">Instagram Story</div></div>
+    </div>
+    <div class="layout-item">
+      <div class="layout-preview" style="background:var(--terra);flex-direction:column;gap:4px;padding:16px;align-items:flex-start;justify-content:center">
+        <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5)">¿Sabías que?</div>
+        <div style="font-family:'Lora',serif;font-size:13px;color:white;line-height:1.4;font-style:italic">La terapia no es solo para crisis.</div>
+        <div style="width:24px;height:1px;background:rgba(255,255,255,.3);margin-top:4px"></div>
+      </div>
+      <div class="layout-label">Dato educativo<div class="layout-type">Carrusel Instagram</div></div>
+    </div>
+    <div class="layout-item">
+      <div class="layout-preview" style="background:var(--white);border:1px solid var(--border);flex-direction:column;gap:6px;padding:16px;align-items:flex-start;justify-content:center">
+        <img src="PSIC.png" onerror="this.style.display='none'" alt="" style="height:60px;opacity:.5">
+        <div style="font-size:10px;color:var(--muted)">El espacio terapéutico</div>
+      </div>
+      <div class="layout-label">Ilustración<div class="layout-type">Post o Story</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MANUAL ══ -->
+<div class="panel" id="p-manual">
+  <div class="panel-header">
+    <div class="ph-label">Manual de Identidad</div>
+    <h1 class="ph-title">Cómo usar<br><em>tu marca</em></h1>
+    <p class="ph-desc">La guía completa para usar tu identidad visual de forma consistente y profesional — siempre.</p>
+  </div>
+
+  <div class="g2 mb">
+    <div class="card">
+      <div class="clabel">Logo · Reglas de uso</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+        <div style="display:flex;gap:10px;font-size:13px;color:var(--text2)"><span style="color:var(--terra)">✓</span>Espacio de respeto mínimo alrededor del logo</div>
+        <div style="display:flex;gap:10px;font-size:13px;color:var(--text2)"><span style="color:var(--terra)">✓</span>Sobre fondo claro: versión terracota original</div>
+        <div style="display:flex;gap:10px;font-size:13px;color:var(--text2)"><span style="color:var(--terra)">✓</span>Sobre fondo oscuro o terracota: versión blanca</div>
+        <div style="display:flex;gap:10px;font-size:13px;color:var(--muted)"><span>✗</span>No distorsionar ni cambiar proporciones</div>
+        <div style="display:flex;gap:10px;font-size:13px;color:var(--muted)"><span>✗</span>No cambiar los colores del logo</div>
+        <div style="display:flex;gap:10px;font-size:13px;color:var(--muted)"><span>✗</span>No usar sobre fondos con patrones complejos</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Color · Combinaciones aprobadas</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="width:20px;height:20px;border-radius:4px;background:#F5F2EE;border:1px solid var(--border)"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:#C4785A"></div>
+          <span style="font-size:12.5px;color:var(--text2)">Base + Terracota — principal</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="width:20px;height:20px;border-radius:4px;background:#C4785A"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:white"></div>
+          <span style="font-size:12.5px;color:var(--text2)">Terracota + Blanco — impacto</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="width:20px;height:20px;border-radius:4px;background:#2A1F1A"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:#C4785A"></div>
+          <span style="font-size:12.5px;color:var(--text2)">Oscuro + Terracota — editorial</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="width:20px;height:20px;border-radius:4px;background:#F5F2EE"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:#7A9BB5"></div>
+          <span style="font-size:12.5px;color:var(--text2)">Base + Azul — apoyo</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb">
+    <div class="clabel">Tipografía · Jerarquía</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px">
+      <div style="display:flex;gap:16px;align-items:baseline;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <div style="min-width:100px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">H1 · Títulos</div>
+        <div style="font-family:'Lora',serif;font-size:28px;font-style:italic;color:var(--text)">Cami López</div>
+      </div>
+      <div style="display:flex;gap:16px;align-items:baseline;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <div style="min-width:100px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">H2 · Sección</div>
+        <div style="font-family:'Lora',serif;font-size:20px;color:var(--text)">El cuidado que sostiene</div>
+      </div>
+      <div style="display:flex;gap:16px;align-items:baseline;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <div style="min-width:100px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Body · Cuerpo</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:300;color:var(--text2)">Acompañamiento emocional virtual desde la terapia cognitivo conductual.</div>
+      </div>
+      <div style="display:flex;gap:16px;align-items:baseline">
+        <div style="min-width:100px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Label · UI</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)">Psicóloga · Colombia · Virtual</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card terra">
+    <div class="clabel">La regla más importante</div>
+    <h3>Menos es más, siempre</h3>
+    <p>Mucho aire. Jerarquía clara. Pocos elementos. El espacio en blanco no es ausencia — es parte del diseño de Cami López. Cada pieza visual respira. Si algo se siente recargado, quita elementos hasta que respire.</p>
+  </div>
+</div>
+
+
+<!-- ══ DESCARGAS ══ -->
+<div class="panel" id="p-descargas">
+  <div class="panel-header">
+    <div class="ph-label">Tus archivos</div>
+    <h1 class="ph-title">Descargas de<br><em>tu marca</em></h1>
+    <p class="ph-desc">Todos los archivos de tu marca en un solo lugar. Listos para usar en cualquier momento.</p>
+  </div>
+
+  <!-- IDENTIDAD VISUAL -->
+  <div class="download-section">
+    <div class="ds-header">
+      <div>
+        <div class="ds-title">🎨 Identidad Visual</div>
+        <div class="ds-sub">Logo, paleta, tipografías y brandboard</div>
+      </div>
+      <a class="download-btn" href="#" onclick="return false;" title="Próximamente">⬇ Descargar todo</a>
+    </div>
+    <div class="ds-files">
+      <div class="ds-file">
+        <div class="ds-file-info">
+          <div class="ds-file-ico">🔷</div>
+          <div><div class="ds-file-name">Logo principal</div><div class="ds-file-type">AI · PDF · PNG</div></div>
+        </div>
+        <a class="ds-file-btn" href="#" onclick="return false;">Descargar</a>
+      </div>
+      <div class="ds-file">
+        <div class="ds-file-info">
+          <div class="ds-file-ico">🎨</div>
+          <div><div class="ds-file-name">Paleta de color</div><div class="ds-file-type">PDF · ASE</div></div>
+        </div>
+        <a class="ds-file-btn" href="#" onclick="return false;">Descargar</a>
+      </div>
+      <div class="ds-file">
+        <div class="ds-file-info">
+          <div class="ds-file-ico">🖼</div>
+          <div><div class="ds-file-name">Brandboard</div><div class="ds-file-type">PDF</div></div>
+        </div>
+        <a class="ds-file-btn" href="#" onclick="return false;">Descargar</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESTRATEGIA -->
+  <div class="download-section">
+    <div class="ds-header">
+      <div>
+        <div class="ds-title">🧭 Estrategia & Documentos</div>
+        <div class="ds-sub">Estrategia, manual, presentación y radar</div>
+      </div>
+      <a class="download-btn" href="#" onclick="return false;" title="Próximamente">⬇ Descargar todo</a>
+    </div>
+    <div class="ds-files">
+      <div class="ds-file">
+        <div class="ds-file-info">
+          <div class="ds-file-ico">📖</div>
+          <div><div class="ds-file-name">Manual de Identidad</div><div class="ds-file-type">PDF</div></div>
+        </div>
+        <a class="ds-file-btn" href="#" onclick="return false;">Descargar</a>
+      </div>
+      <div class="ds-file">
+        <div class="ds-file-info">
+          <div class="ds-file-ico">📄</div>
+          <div><div class="ds-file-name">Estrategia de Marca</div><div class="ds-file-type">PDF</div></div>
+        </div>
+        <a class="ds-file-btn" href="#" onclick="return false;">Descargar</a>
+      </div>
+      <div class="ds-file">
+        <div class="ds-file-info">
+          <div class="ds-file-ico">📊</div>
+          <div><div class="ds-file-name">Presentación de Marca</div><div class="ds-file-type">PDF · PPTX</div></div>
+        </div>
+        <a class="ds-file-btn" href="#" onclick="return false;">Descargar</a>
+      </div>
+      <div class="ds-file">
+        <div class="ds-file-info">
+          <div class="ds-file-ico">📡</div>
+          <div><div class="ds-file-name">Radar de Marca</div><div class="ds-file-type">PDF</div></div>
+        </div>
+        <a class="ds-file-btn" href="#" onclick="return false;">Descargar</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- KIT LANZAMIENTO -->
+  <div class="download-section">
+    <div class="ds-header">
+      <div>
+        <div class="ds-title">🚀 Kit de Lanzamiento</div>
+        <div class="ds-sub">Layouts editables para Instagram y TikTok</div>
+      </div>
+      <a class="download-btn" href="#" onclick="return false;" title="Próximamente">⬇ Descargar todo</a>
+    </div>
+    <div class="ds-files">
+      <div class="ds-file">
+        <div class="ds-file-info">
+          <div class="ds-file-ico">📱</div>
+          <div><div class="ds-file-name">Layouts Instagram Feed</div><div class="ds-file-type">Canva · PNG</div></div>
+        </div>
+        <a class="ds-file-btn" href="#" onclick="return false;">Descargar</a>
+      </div>
+      <div class="ds-file">
+        <div class="ds-file-info">
+          <div class="ds-file-ico">⬜</div>
+          <div><div class="ds-file-name">Layouts Stories</div><div class="ds-file-type">Canva · PNG</div></div>
+        </div>
+        <a class="ds-file-btn" href="#" onclick="return false;">Descargar</a>
+      </div>
+      <div class="ds-file">
+        <div class="ds-file-info">
+          <div class="ds-file-ico">🎬</div>
+          <div><div class="ds-file-name">Layouts TikTok</div><div class="ds-file-type">Canva · MP4</div></div>
+        </div>
+        <a class="ds-file-btn" href="#" onclick="return false;">Descargar</a>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:rgba(196,120,90,.06);border:1px solid rgba(196,120,90,.2);border-radius:12px;padding:16px 20px;display:flex;gap:12px;align-items:center">
+    <span style="font-size:18px">💬</span>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--terra);margin-bottom:3px">¿Necesitas ayuda con tus archivos?</div>
+      <div style="font-size:12.5px;color:var(--text2);font-weight:400">Escríbenos a <strong>hola@preludio.co</strong> y te ayudamos en menos de 48 horas.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ CHECKLIST ══ -->
+<div class="panel" id="p-checklist">
+  <div class="panel-header">
+    <div class="ph-label">Plan de lanzamiento</div>
+    <h1 class="ph-title">¿Lista para<br><em>salir al mundo?</em></h1>
+    <p class="ph-desc">Responde una pregunta y te mostramos exactamente qué sigue.</p>
+  </div>
+
+  <!-- PREGUNTA -->
+  <div class="launch-question">
+    <div class="lq-title">¿Ya estás vendiendo velas?</div>
+    <div class="lq-sub">Tu respuesta define el siguiente paso</div>
+    <div class="lq-btns">
+      <button class="lq-btn" onclick="showChecklist('no', this)">Todavía no</button>
+      <button class="lq-btn" onclick="showChecklist('si', this)">Sí, ya vendo</button>
+    </div>
+  </div>
+
+  <!-- CHECKLIST: NO VENDE AÚN -->
+  <div class="cl-container" id="cl-no">
+    <div class="cl-header">
+      <div class="cl-title">Tu ruta de lanzamiento</div>
+      <div class="cl-progress">
+        <div class="cl-progress-bar"><div class="cl-progress-fill" id="prog-no" style="width:0%"></div></div>
+        <span class="cl-progress-text" id="prog-no-text">0 / 10</span>
+      </div>
+    </div>
+
+    <!-- LO QUE PRELUDIO YA HIZO -->
+    <div class="cl-group">
+      <div class="cl-group-label">✦ Preludio ya resolvió esto</div>
+      <div class="cl-item preludio">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Nombre y concepto de tu negocio</div><div class="cl-sub">Ya tienes identidad y dirección</div></div>
+        <span class="cl-tag preludio-tag">Listo</span>
+      </div>
+      <div class="cl-item preludio">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Identidad visual completa</div><div class="cl-sub">Logo, paleta, tipografías, brandboard</div></div>
+        <span class="cl-tag preludio-tag">Listo</span>
+      </div>
+      <div class="cl-item preludio">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Estrategia de marca</div><div class="cl-sub">Propósito, cliente ideal, posicionamiento</div></div>
+        <span class="cl-tag preludio-tag">Listo</span>
+      </div>
+      <div class="cl-item preludio">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Manual de identidad</div><div class="cl-sub">Cómo usar tu marca correctamente</div></div>
+        <span class="cl-tag preludio-tag">Listo</span>
+      </div>
+    </div>
+
+    <!-- LO QUE ELLA DEBE HACER -->
+    <div class="cl-group">
+      <div class="cl-group-label">Lo que sigue — márcalo cuando lo hagas</div>
+      <div class="cl-item" onclick="toggleCheck(this,'no')">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Consigue tus proveedores de insumos</div><div class="cl-sub">Cera, mechas, fragancias, recipientes</div></div>
+        <span class="cl-tag pending-tag">Pendiente</span>
+      </div>
+      <div class="cl-item" onclick="toggleCheck(this,'no')">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Haz tu primera prueba de producto</div><div class="cl-sub">Testa fórmulas, aromas y tiempos de quemado</div></div>
+        <span class="cl-tag pending-tag">Pendiente</span>
+      </div>
+      <div class="cl-item" onclick="toggleCheck(this,'no')">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Toma las primeras fotos de producto</div><div class="cl-sub">Con buena luz natural, fondo neutro y tu paleta</div></div>
+        <span class="cl-tag pending-tag">Pendiente</span>
+      </div>
+      <div class="cl-item" onclick="toggleCheck(this,'no')">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Configura tu perfil de Instagram</div><div class="cl-sub">Bio con tu propuesta de valor y link de contacto</div></div>
+        <span class="cl-tag pending-tag">Pendiente</span>
+      </div>
+      <div class="cl-item" onclick="toggleCheck(this,'no')">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Publica tu primer post de presentación</div><div class="cl-sub">"Esto es lo que somos y por qué existimos"</div></div>
+        <span class="cl-tag pending-tag">Pendiente</span>
+      </div>
+      <div class="cl-item" onclick="toggleCheck(this,'no')">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Haz tu primera venta — a quien sea</div><div class="cl-sub">Una amiga, un familiar, alguien de tu red. La primera rompe el hielo</div></div>
+        <span class="cl-tag pending-tag">Pendiente</span>
+      </div>
+    </div>
+
+    <div class="cl-celebration" id="cel-no">
+      <div class="emoji">🎉</div>
+      <h3>¡Lista para el mundo!</h3>
+      <p>Completaste toda la ruta de lanzamiento. Tu negocio ya existe — ahora es momento de que el mundo lo conozca.</p>
+    </div>
+  </div>
+
+  <!-- CHECKLIST: SÍ VENDE -->
+  <div class="cl-container" id="cl-si">
+    <div class="cl-header">
+      <div class="cl-title">Tu ruta de estructura</div>
+      <div class="cl-progress">
+        <div class="cl-progress-bar"><div class="cl-progress-fill" id="prog-si" style="width:0%"></div></div>
+        <span class="cl-progress-text" id="prog-si-text">0 / 9</span>
+      </div>
+    </div>
+
+    <div class="cl-group">
+      <div class="cl-group-label">✦ Preludio ya resolvió esto</div>
+      <div class="cl-item preludio">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Identidad visual profesional</div><div class="cl-sub">Tu marca ahora se ve a la altura de lo que vendes</div></div>
+        <span class="cl-tag preludio-tag">Listo</span>
+      </div>
+      <div class="cl-item preludio">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Estrategia y posicionamiento</div><div class="cl-sub">Sabes a quién le hablas y cómo diferenciarte</div></div>
+        <span class="cl-tag preludio-tag">Listo</span>
+      </div>
+      <div class="cl-item preludio">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Manual de identidad</div><div class="cl-sub">Consistencia visual en todo lo que publiques</div></div>
+        <span class="cl-tag preludio-tag">Listo</span>
+      </div>
+    </div>
+
+    <div class="cl-group">
+      <div class="cl-group-label">Lo que sigue — actualiza tu presencia</div>
+      <div class="cl-item" onclick="toggleCheck(this,'si')">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Actualiza tu perfil de Instagram con la nueva identidad</div><div class="cl-sub">Foto de perfil, bio, highlights con tu nueva marca</div></div>
+        <span class="cl-tag pending-tag">Pendiente</span>
+      </div>
+      <div class="cl-item" onclick="toggleCheck(this,'si')">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Rediseña tu empaque o etiqueta con la nueva identidad</div><div class="cl-sub">Coherencia entre lo digital y lo físico</div></div>
+        <span class="cl-tag pending-tag">Pendiente</span>
+      </div>
+      <div class="cl-item" onclick="toggleCheck(this,'si')">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Retoma fotos de producto con la nueva estética</div><div class="cl-sub">Colores, fondos y ambiente coherentes con tu paleta</div></div>
+        <span class="cl-tag pending-tag">Pendiente</span>
+      </div>
+      <div class="cl-item" onclick="toggleCheck(this,'si')">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Publica el "antes y después" de tu marca</div><div class="cl-sub">Tu evolución es contenido poderoso — compártela</div></div>
+        <span class="cl-tag pending-tag">Pendiente</span>
+      </div>
+      <div class="cl-item" onclick="toggleCheck(this,'si')">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Revisa y ajusta tus precios</div><div class="cl-sub">Una identidad profesional soporta precios más altos</div></div>
+        <span class="cl-tag pending-tag">Pendiente</span>
+      </div>
+      <div class="cl-item" onclick="toggleCheck(this,'si')">
+        <div class="cl-check"></div>
+        <div><div class="cl-text">Comparte tu marca con tu comunidad actual</div><div class="cl-sub">Tus clientes existentes son tus primeros promotores</div></div>
+        <span class="cl-tag pending-tag">Pendiente</span>
+      </div>
+    </div>
+
+    <div class="cl-celebration" id="cel-si">
+      <div class="emoji">🔥</div>
+      <h3>¡Tu marca evolucionó!</h3>
+      <p>Completaste la transición. De vender sin estructura a tener una marca real, coherente y lista para escalar.</p>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ══ DIAGNÓSTICO ══ -->
+<div class="panel" id="p-diagnostico">
+  <div class="panel-header">
+    <div class="ph-label">Diagnóstico de marca</div>
+    <h1 class="ph-title">¿En qué punto<br>está tu <em>negocio?</em></h1>
+    <p class="ph-desc">Responde honestamente del 1 al 5. En 2 minutos sabes exactamente qué sigue para ti.</p>
+  </div>
+
+  <div class="diag-intro">
+    <h2>Antes de empezar</h2>
+    <p>Este diagnóstico es para quienes <strong>ya venden</strong> y quieren entender en qué fase están y qué construir primero.<br>Cada pregunta se responde del <strong>1 (nada) al 5 (completamente)</strong>.</p>
+    <button class="diag-submit" style="max-width:240px;margin:0 auto" onclick="startDiag()">Comenzar diagnóstico →</button>
+  </div>
+
+  <div class="diag-form" id="diag-form">
+    <div class="diag-q">
+      <div class="diag-q-num">01 — Identidad</div>
+      <div class="diag-q-text">¿Tu marca tiene una identidad visual clara y consistente?</div>
+      <div class="diag-q-sub">Logo definido, paleta de colores, tipografías y aplicación coherente en redes y empaque.</div>
+      <div class="diag-scale">
+        <span class="diag-scale-label">Para nada</span>
+        <div class="diag-options" id="q1">
+          <div class="diag-opt" onclick="selectOpt(this,'q1',1)">1</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q1',2)">2</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q1',3)">3</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q1',4)">4</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q1',5)">5</div>
+        </div>
+        <span class="diag-scale-label right">Completamente</span>
+      </div>
+    </div>
+
+    <div class="diag-q">
+      <div class="diag-q-num">02 — Ventas</div>
+      <div class="diag-q-text">¿Tienes un sistema claro para vender y recibir pedidos?</div>
+      <div class="diag-q-sub">Canal de ventas definido, proceso de pago claro, forma de recibir pedidos organizada.</div>
+      <div class="diag-scale">
+        <span class="diag-scale-label">Para nada</span>
+        <div class="diag-options" id="q2">
+          <div class="diag-opt" onclick="selectOpt(this,'q2',1)">1</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q2',2)">2</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q2',3)">3</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q2',4)">4</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q2',5)">5</div>
+        </div>
+        <span class="diag-scale-label right">Completamente</span>
+      </div>
+    </div>
+
+    <div class="diag-q">
+      <div class="diag-q-num">03 — Comunicación</div>
+      <div class="diag-q-text">¿Publicas contenido con frecuencia y consistencia en redes?</div>
+      <div class="diag-q-sub">Al menos 3 veces por semana, con un estilo visual y tono reconocible.</div>
+      <div class="diag-scale">
+        <span class="diag-scale-label">Para nada</span>
+        <div class="diag-options" id="q3">
+          <div class="diag-opt" onclick="selectOpt(this,'q3',1)">1</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q3',2)">2</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q3',3)">3</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q3',4)">4</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q3',5)">5</div>
+        </div>
+        <span class="diag-scale-label right">Completamente</span>
+      </div>
+    </div>
+
+    <div class="diag-q">
+      <div class="diag-q-num">04 — Cliente</div>
+      <div class="diag-q-text">¿Sabes exactamente a quién le vendes y dónde está esa persona?</div>
+      <div class="diag-q-sub">Perfil de cliente definido, edad, intereses, dónde compra, qué valora.</div>
+      <div class="diag-scale">
+        <span class="diag-scale-label">Para nada</span>
+        <div class="diag-options" id="q4">
+          <div class="diag-opt" onclick="selectOpt(this,'q4',1)">1</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q4',2)">2</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q4',3)">3</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q4',4)">4</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q4',5)">5</div>
+        </div>
+        <span class="diag-scale-label right">Completamente</span>
+      </div>
+    </div>
+
+    <div class="diag-q">
+      <div class="diag-q-num">05 — Finanzas</div>
+      <div class="diag-q-text">¿Conoces tus costos, márgenes y punto de equilibrio?</div>
+      <div class="diag-q-sub">Sabes cuánto te cuesta producir, cuánto ganas por venta y cuánto necesitas vender para sostenerte.</div>
+      <div class="diag-scale">
+        <span class="diag-scale-label">Para nada</span>
+        <div class="diag-options" id="q5">
+          <div class="diag-opt" onclick="selectOpt(this,'q5',1)">1</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q5',2)">2</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q5',3)">3</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q5',4)">4</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q5',5)">5</div>
+        </div>
+        <span class="diag-scale-label right">Completamente</span>
+      </div>
+    </div>
+
+    <div class="diag-q">
+      <div class="diag-q-num">06 — Operación</div>
+      <div class="diag-q-text">¿Tu proceso de producción y entrega es organizado y repetible?</div>
+      <div class="diag-q-sub">Puedes producir sin improvisar, tienes proveedores estables y entregas a tiempo.</div>
+      <div class="diag-scale">
+        <span class="diag-scale-label">Para nada</span>
+        <div class="diag-options" id="q6">
+          <div class="diag-opt" onclick="selectOpt(this,'q6',1)">1</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q6',2)">2</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q6',3)">3</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q6',4)">4</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q6',5)">5</div>
+        </div>
+        <span class="diag-scale-label right">Completamente</span>
+      </div>
+    </div>
+
+    <div class="diag-q">
+      <div class="diag-q-num">07 — Diferenciación</div>
+      <div class="diag-q-text">¿Tu negocio tiene algo que lo hace único frente a la competencia?</div>
+      <div class="diag-q-sub">Una razón clara por la que alguien elegiría tu marca sobre otra.</div>
+      <div class="diag-scale">
+        <span class="diag-scale-label">Para nada</span>
+        <div class="diag-options" id="q7">
+          <div class="diag-opt" onclick="selectOpt(this,'q7',1)">1</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q7',2)">2</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q7',3)">3</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q7',4)">4</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q7',5)">5</div>
+        </div>
+        <span class="diag-scale-label right">Completamente</span>
+      </div>
+    </div>
+
+    <div class="diag-q">
+      <div class="diag-q-num">08 — Crecimiento</div>
+      <div class="diag-q-text">¿Tus ventas han crecido en los últimos 3 meses?</div>
+      <div class="diag-q-sub">Más clientes, más pedidos o mayor ticket promedio que antes.</div>
+      <div class="diag-scale">
+        <span class="diag-scale-label">Para nada</span>
+        <div class="diag-options" id="q8">
+          <div class="diag-opt" onclick="selectOpt(this,'q8',1)">1</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q8',2)">2</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q8',3)">3</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q8',4)">4</div>
+          <div class="diag-opt" onclick="selectOpt(this,'q8',5)">5</div>
+        </div>
+        <span class="diag-scale-label right">Completamente</span>
+      </div>
+    </div>
+
+    <button class="diag-submit" id="diag-submit-btn" onclick="calcDiag()" disabled>
+      Ver mi diagnóstico →
+    </button>
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="diag-result" id="diag-result">
+
+    <!-- EXPLORACIÓN -->
+    <div id="res-exploracion" style="display:none">
+      <div class="result-header exploracion">
+        <div class="result-emoji">🌱</div>
+        <div class="result-fase">Fase 01 — Exploración</div>
+        <div class="result-title">Estás construyendo las bases</div>
+        <div class="result-desc">Tu negocio existe y vende, pero todavía funciona de forma intuitiva. La buena noticia: Preludio ya resolvió lo más difícil. Ahora se trata de consolidar el resto.</div>
+        <div class="result-score">
+          <div class="rs-num" id="score-exp">0</div>
+          <div class="rs-label">puntos de 40</div>
+        </div>
+      </div>
+      <div class="result-section">
+        <div class="rs-label-sec">✦ Preludio ya resolvió</div>
+        <div class="rs-items">
+          <div class="rs-item done-item"><span class="ico">✓</span><span>Identidad visual profesional — ya te ves como una marca real</span></div>
+          <div class="rs-item done-item"><span class="ico">✓</span><span>Estrategia de marca — ya sabes a quién le hablas y cómo diferenciarte</span></div>
+          <div class="rs-item done-item"><span class="ico">✓</span><span>Manual de identidad — coherencia visual en todo lo que publiques</span></div>
+        </div>
+      </div>
+      <div class="result-section">
+        <div class="rs-label-sec">→ Lo que sigue para ti</div>
+        <div class="rs-items">
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Define tu canal de ventas principal</strong> — ¿WhatsApp, Instagram, tienda física? Elige uno y perfeccionalo antes de abrir más.</span></div>
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Calcula tus costos y márgenes</strong> — Saber cuánto ganas por venta es urgente. Sin eso no puedes tomar decisiones.</span></div>
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Publica con consistencia mínima</strong> — 3 posts por semana con tu nueva identidad. La frecuencia construye audiencia.</span></div>
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Habla con 10 clientes actuales</strong> — Entiende por qué te compraron. Eso define tu estrategia de comunicación.</span></div>
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Estandariza tu proceso de producción</strong> — Documenta cómo produces para que sea repetible y escalable.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONSOLIDANDO -->
+    <div id="res-consolidando" style="display:none">
+      <div class="result-header consolidando">
+        <div class="result-emoji">🔥</div>
+        <div class="result-fase">Fase 02 — Consolidación</div>
+        <div class="result-title">Ya tienes tracción. Ahora a construir</div>
+        <div class="result-desc">Tu negocio tiene bases sólidas y ventas constantes. El reto ahora es pasar de funcionar a crecer de forma sostenida.</div>
+        <div class="result-score">
+          <div class="rs-num" id="score-con">0</div>
+          <div class="rs-label">puntos de 40</div>
+        </div>
+      </div>
+      <div class="result-section">
+        <div class="rs-label-sec">✦ Lo que ya tienes funcionando</div>
+        <div class="rs-items">
+          <div class="rs-item done-item"><span class="ico">✓</span><span>Identidad visual coherente y profesional</span></div>
+          <div class="rs-item done-item"><span class="ico">✓</span><span>Ventas constantes y proceso de pedidos organizado</span></div>
+          <div class="rs-item done-item"><span class="ico">✓</span><span>Conocimiento básico de tu cliente</span></div>
+        </div>
+      </div>
+      <div class="result-section">
+        <div class="rs-label-sec">→ Lo que sigue para escalar</div>
+        <div class="rs-items">
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Sube tus precios</strong> — Con una identidad sólida y clientes fieles, tu mercado soporta precios más altos.</span></div>
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Activa la prueba social</strong> — Pide reseñas, comparte testimonios, muestra resultados reales de clientes.</span></div>
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Crea un producto estrella</strong> — El 80% de tus ventas probablemente vienen del 20% de tus productos. Identifícalo y potencialo.</span></div>
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Construye una comunidad</strong> — Newsletter, grupo de WhatsApp o comunidad de clientes fieles. La recurrencia es tu activo más valioso.</span></div>
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Delega lo operativo</strong> — Si todo depende de ti, no puedes crecer. Identifica qué puedes delegar primero.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ESCALANDO -->
+    <div id="res-escalando" style="display:none">
+      <div class="result-header escalando">
+        <div class="result-emoji">🚀</div>
+        <div class="result-fase">Fase 03 — Escale</div>
+        <div class="result-title">Lista para crecer en grande</div>
+        <div class="result-desc">Tu negocio tiene estructura, identidad, ventas crecientes y operación organizada. Estás en el punto donde la mayoría de emprendedoras sueña estar.</div>
+        <div class="result-score">
+          <div class="rs-num" id="score-esc">0</div>
+          <div class="rs-label">puntos de 40</div>
+        </div>
+      </div>
+      <div class="result-section">
+        <div class="rs-label-sec">✦ Lo que ya construiste</div>
+        <div class="rs-items">
+          <div class="rs-item done-item"><span class="ico">✓</span><span>Marca sólida con identidad clara y diferenciadora</span></div>
+          <div class="rs-item done-item"><span class="ico">✓</span><span>Sistema de ventas organizado y en crecimiento</span></div>
+          <div class="rs-item done-item"><span class="ico">✓</span><span>Operación estable y conocimiento profundo del cliente</span></div>
+          <div class="rs-item done-item"><span class="ico">✓</span><span>Finanzas claras y producto diferenciado</span></div>
+        </div>
+      </div>
+      <div class="result-section">
+        <div class="rs-label-sec">→ Lo que sigue en esta fase</div>
+        <div class="rs-items">
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Expande a nuevos canales</strong> — Tienda online propia, marketplaces, distribuidores o puntos físicos.</span></div>
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Construye equipo</strong> — El crecimiento requiere personas. Define el primer rol que necesitas contratar.</span></div>
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Crea líneas de producto</strong> — Amplía el catálogo con lógica estratégica, no por impulso.</span></div>
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Evalúa financiamiento</strong> — Con tus números claros, puedes explorar créditos o inversionistas para acelerar.</span></div>
+          <div class="rs-item next-item"><span class="ico">→</span><span><strong>Mide todo</strong> — Implementa métricas claras: costo de adquisición, ticket promedio, tasa de retención.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="diag-retry" onclick="retryDiag()">Hacer el diagnóstico de nuevo</button>
+  </div>
+</div>
+
+
+<div class="panel" id="p-microinfluencers">
+  <div class="panel-header">
+    <div class="ph-label">Directorio exclusivo</div>
+    <h1 class="ph-title">Conecta con<br><em>microinfluencers</em></h1>
+    <p class="ph-desc">Seleccionados para marcas como la tuya. Auténticos, accesibles y con alta tasa de engagement.</p>
+  </div>
+  <div class="micro-intro">
+    <div style="font-size:24px;flex-shrink:0">💡</div>
+    <div>
+      <h4>¿Cómo funciona?</h4>
+      <p>Elige el perfil que mejor se alinee con tu marca. Haz clic en "Contactar" y menciona que vienes de Preludio para acceder a tarifas preferenciales.</p>
+    </div>
+  </div>
+  <div class="micro-grid">
+    <div class="micro-card">
+      <img class="micro-avatar" src="data:image/jpeg;base64,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" alt="Manuela López">
+      <div class="micro-name">Manuela López</div>
+      <div class="micro-handle">@manuela.mlopez</div>
+      <div class="micro-nicho">Belleza, lifestyle y recomendaciones auténticas para mujeres jóvenes</div>
+      <div class="micro-tags"><span class="micro-tag">Belleza</span><span class="micro-tag">Lifestyle</span><span class="micro-tag">Mujeres</span></div>
+      <div class="micro-precio">Desde <strong>$150.000 COP</strong> por story</div>
+      <a class="micro-btn" href="https://instagram.com/manuela.mlopez" target="_blank">Contactar →</a>
+    </div>
+    <div class="micro-card">
+      <img class="micro-avatar" src="data:image/jpeg;base64,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" alt="Alejandro Duque">
+      <div class="micro-name">Alejandro Duque</div>
+      <div class="micro-handle">@alejandroduqueg</div>
+      <div class="micro-nicho">Moda, fitness y lifestyle masculino con enfoque en bienestar personal</div>
+      <div class="micro-tags"><span class="micro-tag">Moda</span><span class="micro-tag">Fitness</span><span class="micro-tag">Lifestyle</span></div>
+      <div class="micro-precio">Desde <strong>$180.000 COP</strong> por story</div>
+      <a class="micro-btn" href="https://instagram.com/alejandroduqueg" target="_blank">Contactar →</a>
+    </div>
+    <div class="micro-card">
+      <img class="micro-avatar" src="data:image/jpeg;base64,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" alt="Estefanía Rodríguez">
+      <div class="micro-name">Estefanía Rodríguez</div>
+      <div class="micro-handle">@estefaniarodriguez</div>
+      <div class="micro-nicho">Viajes, gastronomía y experiencias para audiencias aspiracionales</div>
+      <div class="micro-tags"><span class="micro-tag">Viajes</span><span class="micro-tag">Foodie</span><span class="micro-tag">Lifestyle</span></div>
+      <div class="micro-precio">Desde <strong>$200.000 COP</strong> por story</div>
+      <a class="micro-btn" href="https://instagram.com/estefaniarodriguez" target="_blank">Contactar →</a>
+    </div>
+  </div>
+</div>
+
+
+<div class="panel" id="p-tokens">
+  <div class="panel-header">
+    <div class="ph-label">Sistema de recompensas</div>
+    <h1 class="ph-title">Tus <em>tokens</em></h1>
+    <p class="ph-desc">Completa los retos y desbloquea tu premio. Cada acción que tomas por tu negocio tiene recompensa.</p>
+  </div>
+
+  <!-- HERO PROGRESO -->
+  <div class="tokens-hero">
+    <div class="th-label">Tu progreso</div>
+    <div class="th-title">Colecta los 4 tokens</div>
+    <div class="th-sub">y desbloquea tu premio exclusivo de Preludio</div>
+    <div class="tokens-display">
+      <div class="token" id="tok1">⭐</div>
+      <div class="token" id="tok2">⭐</div>
+      <div class="token" id="tok3">⭐</div>
+      <div class="token" id="tok4">⭐</div>
+    </div>
+    <div class="th-progress">
+      <div class="th-track"><div class="th-fill" id="tok-fill" style="width:0%"></div></div>
+      <div class="th-count" id="tok-count">0 de 4 tokens</div>
+    </div>
+  </div>
+
+  <!-- RETOS -->
+  <div class="reto-list">
+
+    <div class="reto" id="reto1" onclick="completeReto(1)">
+      <div class="reto-ico">📋</div>
+      <div class="reto-info">
+        <div class="reto-name">Completa la encuesta de satisfacción</div>
+        <div class="reto-desc">Cuéntanos cómo fue tu experiencia con Preludio. Tu feedback construye algo mejor.</div>
+      </div>
+      <div class="reto-token">🪙</div>
+    </div>
+
+    <div class="reto" id="reto2" onclick="completeReto(2)">
+      <div class="reto-ico">📣</div>
+      <div class="reto-info">
+        <div class="reto-name">Recomienda Preludio a alguien</div>
+        <div class="reto-desc">Comparte tu experiencia con otra emprendedora. Cuando ella compre, tú ganas tu token.</div>
+      </div>
+      <div class="reto-token">🪙</div>
+    </div>
+
+    <div class="reto" id="reto3" onclick="completeReto(3)">
+      <div class="reto-ico">🤝</div>
+      <div class="reto-info">
+        <div class="reto-name">Contrata a un microinfluencer del directorio</div>
+        <div class="reto-desc">Activa tu marca con uno de los perfiles del directorio Preludio y comparte el resultado.</div>
+      </div>
+      <div class="reto-token">🪙</div>
+    </div>
+
+    <div class="reto" id="reto4" onclick="completeReto(4)">
+      <div class="reto-ico">📸</div>
+      <div class="reto-info">
+        <div class="reto-name">Sube evidencia de tu progreso</div>
+        <div class="reto-desc">Muéstranos cómo cambió tu negocio después de Preludio. Una foto, un número, una historia.</div>
+      </div>
+      <div class="reto-token">🪙</div>
+    </div>
+
+  </div>
+
+  <!-- PREMIO -->
+  <!-- PREMIOS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:0">
+
+    <!-- PROVEEDOR -->
+    <div class="premio-card" id="premio1-card">
+      <div class="premio-lock" id="premio1-lock">🔒</div>
+      <div class="premio-title">Conviértete en proveedor</div>
+      <div class="premio-desc">Al completar 2 tokens, tu marca aparece en el directorio de proveedores de otras compradoras de Preludio. Si vendes velas, otras marcas podrán encontrarte y comprarte.</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Se desbloquea con 2 tokens</div>
+      <button class="premio-btn" id="premio1-btn" onclick="claimPremio(1)">Reclamar →</button>
+    </div>
+
+    <!-- MARCA DESTACADA -->
+    <div class="premio-card" id="premio2-card">
+      <div class="premio-lock" id="premio2-lock">🔒</div>
+      <div class="premio-title">Marca destacada</div>
+      <div class="premio-desc">Al completar los 4 tokens, tu marca aparece en la sección de colaboraciones. Otras emprendedoras de Preludio podrán contactarte para crear productos juntas, ir a ferias o lanzar algo en conjunto.</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Se desbloquea con 4 tokens</div>
+      <button class="premio-btn" id="premio2-btn" onclick="claimPremio(2)">Reclamar →</button>
+    </div>
+
+  </div>
+
+</div>
+
+</div><!-- /content -->
+</div><!-- /app -->
+
+<script>
+
+function showChecklist(tipo, btn) {
+  // Reset buttons
+  document.querySelectorAll('.lq-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  // Hide all containers
+  document.querySelectorAll('.cl-container').forEach(c => c.classList.remove('visible'));
+  // Show correct one
+  setTimeout(() => {
+    document.getElementById('cl-' + tipo).classList.add('visible');
+    updateProgress(tipo);
+  }, 200);
+}
+
+function toggleCheck(el, tipo) {
+  if(el.classList.contains('preludio')) return;
+  el.classList.toggle('done');
+  const tag = el.querySelector('.cl-tag');
+  if(el.classList.contains('done')) {
+    if(tag) { tag.textContent = 'Hecho'; tag.className = 'cl-tag preludio-tag'; }
+  } else {
+    if(tag) { tag.textContent = 'Pendiente'; tag.className = 'cl-tag pending-tag'; }
+  }
+  updateProgress(tipo);
+}
+
+function updateProgress(tipo) {
+  const container = document.getElementById('cl-' + tipo);
+  if(!container) return;
+  const total = container.querySelectorAll('.cl-item:not(.preludio)').length;
+  const done = container.querySelectorAll('.cl-item:not(.preludio).done').length;
+  const pct = total > 0 ? (done / total) * 100 : 0;
+  const fill = document.getElementById('prog-' + tipo);
+  const text = document.getElementById('prog-' + tipo + '-text');
+  if(fill) fill.style.width = pct + '%';
+  if(text) text.textContent = done + ' / ' + total;
+  // Celebración
+  const cel = document.getElementById('cel-' + tipo);
+  if(cel) {
+    if(done === total && total > 0) cel.classList.add('visible');
+    else cel.classList.remove('visible');
+  }
+}
+
+
+var diagScores = {};
+
+function startDiag() {
+  document.querySelector('.diag-intro').style.display = 'none';
+  document.getElementById('diag-form').classList.add('visible');
+}
+
+function selectOpt(el, qid, val) {
+  document.querySelectorAll('#' + qid + ' .diag-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  diagScores[qid] = val;
+  // Check if all answered
+  var total = 8;
+  var answered = Object.keys(diagScores).length;
+  document.getElementById('diag-submit-btn').disabled = answered < total;
+}
+
+function calcDiag() {
+  var sum = Object.values(diagScores).reduce((a,b) => a+b, 0);
+  var max = 40;
+  document.getElementById('diag-form').classList.remove('visible');
+  document.getElementById('diag-result').classList.add('visible');
+  // Hide all results
+  document.getElementById('res-exploracion').style.display = 'none';
+  document.getElementById('res-consolidando').style.display = 'none';
+  document.getElementById('res-escalando').style.display = 'none';
+  // Show correct result
+  if(sum <= 20) {
+    document.getElementById('res-exploracion').style.display = 'block';
+    document.getElementById('score-exp').textContent = sum;
+  } else if(sum <= 32) {
+    document.getElementById('res-consolidando').style.display = 'block';
+    document.getElementById('score-con').textContent = sum;
+  } else {
+    document.getElementById('res-escalando').style.display = 'block';
+    document.getElementById('score-esc').textContent = sum;
+  }
+  document.querySelector('.content').scrollTop = 0;
+}
+
+function retryDiag() {
+  diagScores = {};
+  document.querySelectorAll('.diag-opt').forEach(o => o.classList.remove('selected'));
+  document.getElementById('diag-result').classList.remove('visible');
+  document.getElementById('diag-submit-btn').disabled = true;
+  document.querySelector('.diag-intro').style.display = 'block';
+  document.getElementById('diag-form').classList.remove('visible');
+}
+
+
+var tokensEarned = 0;
+var retosCompleted = [];
+
+function completeReto(num) {
+  if(retosCompleted.includes(num)) return;
+  retosCompleted.push(num);
+  tokensEarned++;
+  // Mark reto done
+  var reto = document.getElementById('reto' + num);
+  reto.classList.add('done');
+  reto.querySelector('.reto-ico').textContent = '✓';
+  reto.querySelector('.reto-token').textContent = '✓';
+  reto.querySelector('.reto-token').style.background = 'var(--terra)';
+  reto.querySelector('.reto-token').style.borderColor = 'var(--terra)';
+  reto.querySelector('.reto-token').style.color = 'white';
+  // Update token display
+  var tok = document.getElementById('tok' + tokensEarned);
+  if(tok) tok.classList.add('earned');
+  // Update progress
+  var pct = (tokensEarned / 4) * 100;
+  document.getElementById('tok-fill').style.width = pct + '%';
+  document.getElementById('tok-count').textContent = tokensEarned + ' de 4 tokens';
+  document.getElementById('token-badge').textContent = tokensEarned + '/4';
+  // Check if all earned
+  if(tokensEarned >= 2) {
+    document.getElementById('premio1-card').classList.add('unlocked');
+    document.getElementById('premio1-lock').textContent = '🎁';
+    document.getElementById('premio1-btn').classList.add('active');
+  }
+  if(tokensEarned === 4) {
+    document.getElementById('premio2-card').classList.add('unlocked');
+    document.getElementById('premio2-lock').textContent = '🌟';
+    document.getElementById('premio2-btn').classList.add('active');
+  }
+}
+
+function claimPremio(num) {
+  if(num === 1) {
+    alert('¡Genial! Escríbele a Preludio con la palabra PROVEEDOR y te agregamos al directorio de proveedores. Las otras marcas ya podrán encontrarte. 🎁');
+  } else {
+    alert('¡Lo lograste! Escríbele a Preludio con la palabra DESTACADA y tu marca aparecerá en la sección de colaboraciones. 🌟');
+  }
+}
+
+function show(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('p-' + id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  document.querySelector('.content').scrollTop = 0;
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('done');
+  const box = el.querySelector('.check-box');
+  if(el.classList.contains('done')) box.textContent = '✓';
+  else box.textContent = '';
+}
+</script>
+</body>
+</html>
