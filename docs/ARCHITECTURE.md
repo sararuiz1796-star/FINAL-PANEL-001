@@ -308,10 +308,11 @@ Política de `storage.objects`: el primer segmento del `name` (path) se extrae c
     │   │   └── relationships/
     │   ├── components/
     │   │   ├── ui/                (Button, Card, Badge, Input, Modal, Drawer, Table, EmptyState, Skeleton — construidos sobre los tokens de DESIGN_SYSTEM.md)
-    │   │   └── layout/             (Sidebar, Topbar)
+    │   │   └── layout/             (Sidebar, Topbar — leen su lista de ítems desde lib/navigation.ts, no hardcodeada en el componente)
     │   ├── lib/
     │   │   ├── supabase/           (client.ts, queries por entidad)
-    │   │   └── design-tokens.ts    (espejo 1:1 de DESIGN_SYSTEM.md, consumido por tailwind.config)
+    │   │   ├── design-tokens.ts    (espejo 1:1 de DESIGN_SYSTEM.md, consumido por tailwind.config)
+    │   │   └── navigation.ts       (config de navegación — ver nota abajo)
     │   ├── hooks/
     │   └── types/                  (tipos generados por `supabase gen types` + tipos de dominio)
     ├── tailwind.config.ts
@@ -319,6 +320,8 @@ Política de `storage.objects`: el primer segmento del `name` (path) se extrae c
 ```
 
 Cada `feature/` sigue el mismo patrón interno: `api.ts` (queries TanStack), `components/`, tipos locales. No se introduce una capa de abstracción adicional (ni Redux, ni GraphQL, ni ORM) — Supabase client + TanStack Query es suficiente para el volumen de datos de una investigación individual.
+
+**`lib/navigation.ts`.** Los ítems del sidebar del Research Workspace (Overview, Sources, Documents, Notes, Claims, Connections) se definen en Sprint 1 como una lista de datos —`{ key, label, icon, entityType, order }[]`— en este único módulo, y `Sidebar`/`Topbar` simplemente la recorren. Ningún componente hardcodea el orden o los labels directamente en JSX. Esto no implementa contextualización por `project_type` ni por preferencia del creador (eso sigue fuera de Sprint 1 — ver `docs/CONCEPTUAL_REFRAMING.md` §6), pero es la razón por la que, cuando esa contextualización se construya, el cambio es editar esta lista o leer un override desde datos, no reescribir componentes de layout.
 
 ---
 
@@ -340,7 +343,9 @@ Global (fuera del workspace)
   └── Settings / Account
 ```
 
-Pantallas explícitamente fuera del MVP (quedan en el mapa conceptual, no se construyen): Timeline, Maps, Graph visual, People/Places/Topics/Interviews como módulos propios, Writing workspace, IA.
+Pantallas explícitamente fuera del MVP (quedan en el mapa conceptual, no se construyen): Timeline, Maps, Graph visual, People/Places/Topics/Interviews como módulos propios, Creation Workspace (antes "Writing workspace" — ver `docs/CONCEPTUAL_REFRAMING.md` §8), IA.
+
+**Sobre el orden y énfasis de estos ítems.** El orden de arriba (Sources → Documents → Notes → Claims → Connections) es el default de Sprint 1, no una jerarquía fija del producto. Todo proyecto tiene acceso a las mismas seis secciones sin excepción — eso no cambia nunca por `project_type`. Lo que sí queda abierto para después es *cuál se muestra primero o con más énfasis* según el tipo de proyecto o la preferencia del creador (un proyecto de fotografía podría querer Documents antes que Claims, por ejemplo) — ver `docs/CONCEPTUAL_REFRAMING.md` §6 para la decisión completa y el punto de extensión reservado (`ui_preferences jsonb`, no implementado en Sprint 1).
 
 ---
 

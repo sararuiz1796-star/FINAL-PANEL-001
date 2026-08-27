@@ -2,6 +2,8 @@
 
 > Responde punto por punto a la revisión pedida. No es un reemplazo de vocabulario ("journalist" → "creator") — es un análisis de qué decisiones estructurales cambian, cuáles no, y por qué. Complementa (y en algunos puntos corrige) `docs/ARCHITECTURE.md` y `docs/RELATIONSHIPS_REVIEW.md`. Sigue sin haber código escrito.
 
+**Estado: aprobado.** Las decisiones 1, 2, 3, 5 y 6 de la sección 12 quedan aprobadas tal como se propusieron. La decisión 4 queda aprobada **con un ajuste conceptual** (ver sección 6 y sección 12, punto 4, ambas actualizadas): el modelo de datos sigue siendo universal — ninguna tabla, columna o función se oculta según `project_type` — pero la *presentación* (jerarquía, orden de navegación, énfasis, relevancia) sí podrá contextualizarse más adelante por tipo de proyecto y, eventualmente, por preferencia del creador. Sprint 1 no construye esa contextualización; solo debe dejarla posible.
+
 ---
 
 ## 0. Marco de la revisión
@@ -64,7 +66,7 @@ Con esa prueba, reviso los 10 puntos que pediste.
 
 **Qué eliminaría:** nada del modelo.
 
-**Qué agregaría:** nada al esquema. Sí una regla de producto a aplicar desde Sprint 1: la pestaña Claims nunca se oculta según `project_type` (evitar ramas de UI por tipo de proyecto — ver decisión general al final), pero tampoco se le da más peso visual que a Notes/Sources/Documents en el Overview. Todas las pestañas cuentan igual.
+**Qué agregaría:** nada al esquema. Sí una regla de producto a aplicar desde Sprint 1: la pestaña Claims nunca se oculta ni se deshabilita según `project_type` (ver decisión de disponibilidad universal, sección 6 y sección 12 punto 4). Para Sprint 1, tampoco se le da más peso visual que a Notes/Sources/Documents en el Overview — todas las pestañas cuentan igual por ahora. Ese énfasis relativo es, precisamente, el tipo de cosa que la contextualización futura por `project_type`/preferencia del creador podría ajustar más adelante (sección 6), sin que eso mueva una sola tabla.
 
 ---
 
@@ -106,7 +108,17 @@ communication_project, personal_research, other
 ```
 Igual que con `sources.type`, es solo una lista más larga — cero impacto estructural. `research_question` se queda como campo (nullable, ya lo era) — funciona igual de bien como "pregunta que guía la investigación" para un ensayo que como "premisa" para un poemario; no necesita renombrarse.
 
-**Decisión que sí quiero dejar explícita para que no se cuele por accionar por defecto:** *no* voy a ramificar la UI (mostrar/ocultar pestañas, campos obligatorios distintos) según `project_type`. Es tentador ("si es poesía, ocultar Claims"; "si es periodismo, mostrar reliability_level por defecto") pero es exactamente el tipo de complejidad condicional que la sección 45 del brief pide evitar, y además reintroduce la idea de que hay "proyectos que necesitan Claims" y "proyectos que no" — lo contrario de lo que pediste. `project_type` es metadata descriptiva y de icono/color en la UI, no un interruptor que cambia el modelo de datos disponible.
+**Decisión (aprobada con ajuste conceptual del usuario).** La formulación original de este documento decía "no se ramifica la UI por `project_type`", sin distinguir dos cosas distintas: *disponibilidad* de una capacidad y *presentación* de una capacidad. La versión aprobada distingue ambas:
+
+- **Disponibilidad — universal, sin excepción.** Ninguna tabla, columna ni función queda oculta, deshabilitada o inaccesible según `project_type`. Todo proyecto puede crear Claims, Sources, Documents, Notes y Relationships por igual — esto no cambia respecto a la versión anterior de esta decisión, y sigue siendo la razón por la que `project_type` no gana un solo `CHECK` condicional ni una tabla espejo.
+- **Presentación — contextualizable, no ahora.** El orden de las pestañas, cuál se muestra primero o con más énfasis visual, el copy de los empty states, y eventualmente qué capacidades destaca el propio creador según su forma de trabajar, sí pueden variar — pero como una capa de configuración sobre el mismo modelo universal, nunca como una rama de esquema o de disponibilidad de función.
+
+Esto no se construye en Sprint 1. Lo que sí hay que decidir ahora es cómo evitar que construir la navegación "a mano" en Sprint 1 bloquee esa contextualización después:
+
+- **Navegación como configuración, no como JSX fijo.** El sidebar/tabs de Research Workspace (Overview, Sources, Documents, Notes, Claims, Connections) se define en Sprint 1 como una lista de datos (`{ key, label, icon, entityType, order }` por ítem) en un único punto del código — no repetido/hardcodeado pantalla por pantalla. Así, cuando exista contextualización por `project_type` o por preferencia del creador, cambiar el orden o el label es cambiar esa lista de configuración, no reescribir componentes. Ver `ARCHITECTURE.md` §6 (estructura de carpetas) y §7 (mapa de navegación), actualizados con esta nota.
+- **Punto de extensión reservado, no implementado.** Cuando esa contextualización se construya, el lugar natural para guardarla es una columna `ui_preferences jsonb` nullable — a nivel de `projects` (default sugerido según `project_type`) y, más adelante, a nivel de `project_members` (override por creador dentro de un proyecto). Es un `ALTER TABLE ... ADD COLUMN` no destructivo cuando llegue el momento; no se agrega en Sprint 1 porque no hay todavía ninguna pantalla que lo lea.
+
+`project_type` sigue siendo metadata descriptiva a nivel de dato — lo que cambia es que ahora reconocemos explícitamente que, además de alimentar íconos/colores, en el futuro también alimentará configuración de presentación, sin que eso implique jamás una rama en el modelo de datos.
 
 ---
 
@@ -168,7 +180,7 @@ Nada de esto agrega tablas nuevas, ninguna migración destructiva, y el núcleo 
 1. **Nombre**: `sources` se queda como identificador técnico; el concepto de producto pasa a llamarse "Source / Reference" (ver razones en el punto 1 — evita el problema de `references` como palabra reservada).
 2. **`project` como entidad válida en `relationships`**, con la rama especial en el trigger de validación (punto 5) — esto es lo que permite conectar un libro o una fotografía directamente al "universo creativo" del proyecto sin forzar una Note intermedia.
 3. **No agregar `document_role`** — el rol de un documento es siempre relacional, nunca un atributo fijo.
-4. **No ramificar la UI por `project_type`** — todas las pestañas (incluida Claims) existen para todo tipo de proyecto; lo que cambia es el copy de los empty states, no la disponibilidad de funciones.
+4. **El modelo de datos y la disponibilidad de funciones nunca se ramifican por `project_type`** — todas las pestañas (incluida Claims) existen, con las mismas tablas y capacidades, para todo tipo de proyecto. *Ajustado y aprobado*: la **presentación** (orden, énfasis, jerarquía de navegación) sí podrá contextualizarse después por `project_type` y por preferencia del creador — para eso, Sprint 1 construye la navegación como configuración de datos (no JSX fijo por pantalla) y se deja reservado, sin implementar, un futuro `ui_preferences jsonb` en `projects`/`project_members`.
 5. **Rename**: "Research Health" → **"Project Pulse"**, con el panel calculando todas las señales pero mostrando solo las que tienen datos (adaptativo, no plantilla fija).
 6. **Diferido a Phase 3, documentado ahora**: `relationships.is_ai_suggested` y `confirmed_by` — no se implementa en Sprint 1-8, pero queda registrado para que nadie lo pase por alto cuando llegue la capa de IA.
 
