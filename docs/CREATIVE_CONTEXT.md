@@ -2,6 +2,8 @@
 
 > Incorpora la capa "Core + Creative Context" a la arquitectura conceptual. Responde si modifica alguna de las 9 decisiones pendientes de `docs/HANDOFF_PRODUCT_UX.md` §3. No se construye onboarding, perfiles ni personalización en este ciclo — sigue sin haber pantallas.
 
+**Estado: aprobado.** `profiles` queda confirmada como octava tabla del núcleo, se implementa en Sprint 1. `creative_practices` queda fuera del esquema implementado, reservada para incorporarse después sin romper nada. La no-persistencia de Creative Context en el MVP también queda aprobada, con una precisión del usuario que se registra explícitamente en §1.1 — no se cierra la puerta a una futura capa explícita de configuración/preferencia contextual.
+
 ---
 
 ## 0. La distinción que hay que fijar primero
@@ -22,7 +24,18 @@ Esta tabla ya responde buena parte de la revisión que pediste: no son tres cosa
 
 Tu propio ejemplo lo deja claro: *"Investigación territorial + entrevistas + archivo + fotografía"* no es una opción de una lista cerrada — es una descripción de lo que ese proyecto específico contiene. Eso ya está representado en el sistema, de forma distribuida: son los `sources.type` que existen en ese proyecto, los `documents.file_type` que se cargaron, los `note_type` que predominan, los `relationship_type` que se usaron. Si agregáramos un campo `creative_context` que el usuario tuviera que llenar a mano, estaríamos pidiéndole que describa en texto libre algo que el propio uso de la herramienta ya expresa — duplicación de dato, con el riesgo típico de quedar desactualizado (el campo dice una cosa, el contenido real del proyecto dice otra).
 
-**Decisión: Creative Context se infiere, nunca se declara ni se guarda.** Cuando exista personalización real (fuera de este ciclo), la función que decide "qué mostrar primero, qué enfatizar" puede leer estas señales existentes (conteo de `sources.type`, `documents.file_type`, `relationship_type` predominantes en el proyecto) exactamente igual que Project Pulse ya lee señales existentes para decidir qué tiles mostrar. No es una tabla nueva — es la misma lógica de "computar, no almacenar" que ya usa Project Pulse, aplicada a un problema distinto.
+**Decisión: Creative Context se infiere, nunca se declara ni se guarda — en el MVP.** Cuando exista personalización real (fuera de este ciclo), la función que decide "qué mostrar primero, qué enfatizar" puede leer estas señales existentes (conteo de `sources.type`, `documents.file_type`, `relationship_type` predominantes en el proyecto) exactamente igual que Project Pulse ya lee señales existentes para decidir qué tiles mostrar. No es una tabla nueva — es la misma lógica de "computar, no almacenar" que ya usa Project Pulse, aplicada a un problema distinto.
+
+### 1.1 Precisión (aprobada): "emergente por ahora" no significa "emergente para siempre"
+
+El usuario señala correctamente que esta decisión no debe leerse como un cierre definitivo: que Creative Context sea emergente en el MVP es una decisión de alcance, no un dogma de diseño. Si el uso real demuestra que las personas quieren **declarar** una orientación o intención para su proyecto (no solo que el sistema la infiera de lo que ya cargaron), la arquitectura debe poder incorporar esa capa explícita sin rehacer el Core.
+
+Confirmo que nada de lo diseñado hasta ahora lo impide, por el mismo motivo que ya vale para `ui_preferences` y `creative_practices`: sería una adición puramente aditiva, con dos formas posibles según lo que el uso real pida —
+
+- **Si termina siendo una etiqueta simple** ("orientación declarada" del proyecto): una columna nullable en `projects` (ej. `declared_context text` o `declared_context_tags text[]`), agregada con un `ALTER TABLE ... ADD COLUMN` no destructivo, sin afectar ninguna fila existente.
+- **Si termina necesitando estructura propia** (múltiples orientaciones con peso, historial de cambios, etc.): una tabla nueva `project_context` con `project_id` FK — el mismo patrón que ya usamos para cada entidad futura de Phase 2 (una tabla nueva, sin tocar el núcleo existente).
+
+Ninguna de las dos rutas exige tocar `sources`, `documents`, `notes`, `claims`, `relationships` ni el trigger de validación. Por eso la arquitectura queda abierta a esto sin necesidad de prepararlo hoy — "no impedirlo" no requiere ninguna acción en Sprint 1, solo la garantía (ya cierta por diseño) de que agregar esa capa después es aditivo, no una migración de ruptura.
 
 ---
 
