@@ -43,6 +43,8 @@ Aunque el modelo de permisos hoy es "un solo dueño", propongo crear la tabla `p
 
 El brief ya lo pide para `Project`. Propongo el mismo patrón (`archived_at timestamptz`, nunca `DELETE` físico desde la UI) en `sources`, `documents`, `notes`, `claims`. Es reversible, barato, y evita perder evidencia de investigación por error — coherente con que esto puede contener material sensible (sección 35).
 
+Regla que se deriva de esto y que quiero dejar explícita: **archivar una entidad no borra ni oculta las `relationships` que la mencionan.** Si un Document que respalda un Claim se archiva, esa relación de evidencia sigue existiendo — lo que cambia es que la UI debe marcar ese Document como archivado en la lista de "Supporting Evidence" del Claim, no quitarlo silenciosamente. Ocultar evidencia archivada rompería exactamente lo que Claim Detail existe para responder ("¿por qué creo que esto es cierto?", sección 29). El MVP no expone ningún borrado físico (`DELETE`) desde la interfaz — el walkthrough completo de archivar/restaurar está en `docs/RELATIONSHIPS_REVIEW.md`, sección 4.
+
 ### D5 — Stack de frontend: React + Vite + TypeScript + Tailwind, no Next.js
 
 No hay necesidad de SSR/SEO (esto no es una app pública, es un workspace privado autenticado). Next.js añadiría complejidad (routing de servidor, RSC) sin beneficio real aquí. Recomiendo Vite + React + TypeScript + React Router + TanStack Query (estado de servidor) + Tailwind (los tokens del design system son casi 1:1 config de Tailwind) + Radix primitives sin estilo propio (para accesibilidad de modal/drawer/popover) restyled 100% según DESIGN_SYSTEM.md.
@@ -198,13 +200,37 @@ Convención: toda tabla usa `id uuid primary key default gen_random_uuid()`, `cr
 | created_by | uuid | `references auth.users(id)` |
 | created_at | timestamptz | |
 
-Constraints:
-- `CHECK (NOT (source_entity_type = target_entity_type AND source_entity_id = target_entity_id))` — no auto-relación.
-- `UNIQUE(project_id, source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type)`.
+Constraints (nombradas explícitamente para poder hacer `ALTER ... DROP/ADD CONSTRAINT` cuando se amplíen los tipos en Phase 2, sin adivinar nombres autogenerados):
+- `relationships_source_entity_type_check` — `CHECK (source_entity_type IN ('source','document','note','claim'))`.
+- `relationships_target_entity_type_check` — mismo check sobre `target_entity_type`.
+- `relationships_no_self_reference` — `CHECK (NOT (source_entity_type = target_entity_type AND source_entity_id = target_entity_id))`.
+- `relationships_unique_edge` — `UNIQUE(project_id, source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type)`.
 
 Índices: `idx_relationships_project_id`, `idx_relationships_source (source_entity_type, source_entity_id)`, `idx_relationships_target (target_entity_type, target_entity_id)`, `idx_relationships_type (relationship_type)`.
 
-Trigger `validate_relationship_entities()`: antes de insertar/actualizar, resuelve `source_entity_type`/`target_entity_type` con un `CASE` a la tabla correspondiente y hace `EXISTS (SELECT 1 FROM <tabla> WHERE id = ... AND project_id = NEW.project_id)`; si falla, `RAISE EXCEPTION`. Este trigger es el único lugar donde se necesita tocar código cuando se agregue `person`, `event`, `place`, `topic` o `interview` en Phase 2 — un `CASE` nuevo, no una migración de esquema.
+**Mapeo tipo → tabla.** En vez de derivar el nombre de tabla concatenando texto (`entity_type || 's'`), que se rompe con plurales irregulares (`person` → `people`, no `persons`), se usa una función explícita de mapeo — este es también el único lugar que se toca al agregar una entidad Phase 2:
+
+```sql
+create or replace function entity_table_name(p_entity_type text)
+returns text
+language sql immutable as $$
+  select case p_entity_type
+    when 'source'   then 'sources'
+    when 'document' then 'documents'
+    when 'note'     then 'notes'
+    when 'claim'    then 'claims'
+    -- Phase 2 — una línea por entidad nueva, nada más:
+    -- when 'person'   then 'people'
+    -- when 'event'    then 'events'
+    -- when 'place'    then 'places'
+    -- when 'topic'    then 'topics'
+    -- when 'interview' then 'interviews'
+    else null
+  end;
+$$;
+```
+
+Trigger `validate_relationship_entities()`: antes de insertar/actualizar, resuelve `source_entity_type`/`target_entity_type` vía `entity_table_name()` y hace `EXISTS (SELECT 1 FROM <tabla> WHERE id = ... AND project_id = NEW.project_id)` con SQL dinámico (`format()` + `EXECUTE`); si el tipo no mapea a ninguna tabla o el id no existe en el proyecto, `RAISE EXCEPTION`. El SQL completo, con casos de fallo reales, está en `docs/RELATIONSHIPS_REVIEW.md`.
 
 ### 3.8 Búsqueda de texto (MVP, sin IA)
 
@@ -237,6 +263,8 @@ Políticas por tabla:
 - `sources`, `documents`, `notes`, `claims`, `relationships`: `select/insert/update/delete` donde `user_has_project_access(project_id)`.
 
 Todas las tablas con `RLS ENABLED` desde la primera migración — nunca se abre una tabla "temporalmente" sin políticas.
+
+El SQL completo de las políticas (`CREATE POLICY` por tabla) y un ejemplo trabajado con dos usuarios que demuestra el aislamiento en la práctica están en `docs/RELATIONSHIPS_REVIEW.md`, sección 5.
 
 ---
 
