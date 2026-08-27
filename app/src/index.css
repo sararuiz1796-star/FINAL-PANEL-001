@@ -36,11 +36,16 @@
   --text-body: 16px;
   --text-caption: 13px;
 
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 40px;
+  /*
+    DESIGN_SYSTEM.md define --space-xs/sm/md/lg/xl (4/8/16/24/40px). NO se
+    declaran acá como --spacing-xs, etc.: Tailwind v4 usa `--spacing-*` como
+    namespace COMPARTIDO entre padding/margin/gap Y utilidades de tamaño
+    (max-w-*, w-*, h-*) — nombrar claves ahí "sm"/"md"/"lg"/"xl" pisa el
+    scale por defecto de esas otras utilidades (confirmado: max-w-sm
+    resolvía a 8px en vez de 24rem). En cambio, se usa directamente el scale
+    numérico por defecto de Tailwind, que ya coincide exacto en px con estos
+    valores: xs=p-1, sm=p-2, md=p-4, lg=p-6, xl=p-10 (unidad base 0.25rem/4px).
+  */
 
   --radius-sm: 8px;
   --radius-md: 16px;
