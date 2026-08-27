@@ -434,3 +434,20 @@ Antes de tocar código necesito luz verde (o correcciones) sobre:
 - **D5**: Vite + React + TS + Tailwind + Radix, sin Next.js.
 
 Si apruebas esto tal cual, arranco Sprint 1 (Auth + Home + Create Project + Research Workspace shell + migración inicial completa) en el próximo ciclo.
+
+---
+
+## 11. Política de migraciones y comportamiento ante hard-delete de usuarios (aprobado, previo a la ejecución de 0001)
+
+### 11.1 Política de migraciones
+
+`supabase/migrations/0001_init.sql` es la migración fundacional. **Una vez aplicada al proyecto Supabase real, no se modifica ni se vuelve a ejecutar.** Cualquier cambio de esquema posterior (nueva columna, nuevo índice, ajuste de constraint, entidad de Phase 2, etc.) se hace en un archivo nuevo (`0002_*.sql`, `0003_*.sql`, ...), preservando el historial completo de cómo evolucionó el esquema. Esto ya queda anotado como comentario en la cabecera del propio `0001_init.sql`.
+
+### 11.2 Comportamiento ante hard-delete de un usuario — las dos FK sin cascade
+
+`projects.owner_id` y `relationships.created_by` son las únicas dos foreign keys hacia `auth.users` sin `on delete cascade` ni `on delete set null`. La migración ahora las declara explícitamente `on delete restrict` (antes era el default implícito de Postgres, `no action`, con el mismo efecto práctico — se hace explícito para que quede autodocumentado en el SQL, no dependiendo de que quien lo lea conozca el default de Postgres).
+
+**Comportamiento esperado, documentado explícitamente:**
+- Si algo (la Auth Admin API de Supabase, un borrado manual desde el dashboard, o cualquier proceso futuro) intenta hacer `DELETE` de una fila de `auth.users` que sea `owner_id` de al menos un proyecto, o `created_by` de al menos una relación, **Postgres rechaza ese delete** con un error de violación de foreign key. No se cascadea el borrado del proyecto, no se pone `owner_id` en `null`, no se transfiere el ownership automáticamente a nadie.
+- Esto es intencional: para el MVP, ningún flujo de la aplicación hace hard-delete de usuarios (no existe una función de "borrar mi cuenta" en Sprint 1-8) — por lo tanto, en el uso normal, esta restricción nunca debería dispararse. Su único propósito es actuar como salvaguarda: si alguna vez alguien intentara ese borrado (por accidente o vía una herramienta administrativa), el sistema falla de forma ruidosa y explícita en vez de dejar proyectos huérfanos o relaciones con autoría inconsistente.
+- Deliberadamente **no se agrega** transferencia automática de ownership, ni `SET NULL` en `created_by` (aunque la columna es nullable), ni ninguna otra lógica de resolución automática — no hace falta para el MVP, y agregarla ahora sin un caso de uso real sería sobrearquitectura. Si en el futuro se construye una función real de "eliminar cuenta", esa es la migración incremental (§11.1) donde se decide cómo resolverlo (exigir transferir/archivar proyectos antes, ofrecer transferencia de ownership, u otra política) — no antes.

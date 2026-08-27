@@ -1,6 +1,11 @@
 -- PARNASO — migración inicial (Sprint 1)
 -- Traduce docs/ARCHITECTURE.md, docs/RELATIONSHIPS_REVIEW.md y docs/CREATIVE_CONTEXT.md a SQL ejecutable.
 -- NO EJECUTAR sin revisión y confirmación explícita del usuario.
+--
+-- POLÍTICA DE MIGRACIONES (aprobada): este archivo es la migración fundacional.
+-- Una vez aplicada al proyecto Supabase real, NO SE MODIFICA ni se vuelve a
+-- ejecutar. Cualquier cambio de esquema posterior va en un archivo nuevo
+-- (0002_*.sql, 0003_*.sql, ...), preservando el historial completo.
 
 -- =========================================================================
 -- 0. Extensiones
@@ -64,7 +69,16 @@ create trigger trg_profiles_updated_at
 
 create table projects (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid not null references auth.users(id),
+  -- ON DELETE RESTRICT (explícito, no el default implícito): un intento de
+  -- hard-delete de un auth.users que sea owner de algún proyecto es RECHAZADO
+  -- por Postgres con "violates foreign key constraint" — nunca se cascadea el
+  -- borrado del proyecto ni se transfiere el ownership automáticamente. El
+  -- flujo normal de la app nunca hace hard-delete de usuarios (no existe esa
+  -- función en Sprint 1-8), así que en la práctica esto nunca debería
+  -- dispararse; si algún día se necesita "borrar mi cuenta" como feature real,
+  -- esa decisión (transferir ownership / exigir archivar proyectos antes /
+  -- otra cosa) se toma en ese momento, en una migración incremental propia.
+  owner_id uuid not null references auth.users(id) on delete restrict,
   title text not null,
   subtitle text,
   description text,
@@ -283,7 +297,14 @@ create table relationships (
   relationship_type text not null default 'related_to',
   notes text,
 
-  created_by uuid references auth.users(id),
+  -- ON DELETE RESTRICT (mismo criterio que projects.owner_id, ver arriba):
+  -- un hard-delete de un auth.users que haya creado alguna relationship queda
+  -- bloqueado en vez de dejar la columna en null o borrar la relación en
+  -- cascada. created_by es solo metadata de autoría (nullable, no afecta la
+  -- validez de la relación en sí) — no hace falta SET NULL porque el flujo
+  -- normal de la app nunca borra usuarios; si se necesitara, es una decisión
+  -- para una migración incremental futura, no para agregar ahora sin uso real.
+  created_by uuid references auth.users(id) on delete restrict,
   created_at timestamptz not null default now(),
 
   constraint relationships_source_entity_type_check
