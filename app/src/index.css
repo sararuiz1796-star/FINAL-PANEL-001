@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+/*
+  Tokens de docs/DESIGN_SYSTEM.md, traducidos a variables de tema de Tailwind v4.
+  No agregar hex codes nuevos fuera de acá (regla explícita del Design System, sección 8).
+*/
+@theme {
+  --color-bg-dark: #0a0a0a;
+  --color-bg-light: #f5f2ed;
+
+  --color-text-on-dark: #ffffff;
+  --color-text-on-light: #0a0a0a;
+
+  --color-orange: #e8542e;
+  --color-pink: #f2568c;
+  --color-purple: #7b5fe0;
+  --color-lime: #c4f042;
+  --color-sky: #6fc5e8;
+
+  /* asignación fija de color por entidad — no cambia nunca */
+  --color-entity-source: var(--color-purple);
+  --color-entity-document: var(--color-orange);
+  --color-entity-note: var(--color-lime);
+  --color-entity-event: var(--color-pink); /* reservado para Phase 2 (Event) */
+  --color-entity-claim: var(--color-sky);
+
+  --color-state-error: #e8542e;
+  --color-state-success: #c4f042;
+  /* --color-state-warning y --color-state-neutral: pendientes, ver DESIGN_SYSTEM.md §9 */
+
+  --font-sans: 'Space Grotesk', system-ui, sans-serif;
+
+  --text-display: 48px;
+  --text-h1: 32px;
+  --text-h2: 22px;
+  --text-body: 16px;
+  --text-caption: 13px;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 40px;
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg-light);
+  color: var(--color-text-on-light);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  /* Sin grises intermedios como color de texto principal (regla DESIGN_SYSTEM.md §8.6) */
+}

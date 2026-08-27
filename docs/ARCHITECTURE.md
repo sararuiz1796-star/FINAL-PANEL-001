@@ -167,11 +167,12 @@ Nota: `reliability_level`/`verification_status`/`attribution_status` no se elimi
 | title | text | |
 | content | text | not null |
 | note_type | text | `CHECK IN ('observation','idea','question','hypothesis','lead','reminder','interpretation','personal_note')` |
-| status | text | `CHECK IN ('active','resolved','archived')`, default `'active'` |
+| status | text | `CHECK IN ('active','resolved')`, default `'active'` — **corrección**: la versión anterior de este documento incluía `'archived'` como valor de `status`, duplicando el mecanismo de `archived_at` (D4). Se quita de acá; archivar una Note usa `archived_at` igual que las demás entidades, no un valor de `status`. |
 | search_vector | tsvector | generated (`title`, `content`) |
+| archived_at | timestamptz | nullable — faltaba en una versión anterior de este documento; D4 siempre la incluyó conceptualmente ("mismo patrón... en sources, documents, notes, claims") y `RELATIONSHIPS_REVIEW.md` §4 ya asumía su existencia |
 | created_at, updated_at | timestamptz | |
 
-Índices: `idx_notes_project_id`, `idx_notes_search_vector GIN`.
+Índices: `idx_notes_project_id`, `idx_notes_search_vector GIN`, índice parcial `idx_notes_active (project_id) WHERE archived_at IS NULL`.
 
 ### 3.6 `claims`
 
@@ -183,9 +184,10 @@ Nota: `reliability_level`/`verification_status`/`attribution_status` no se elimi
 | status | text | `CHECK IN ('idea','needs_evidence','partially_supported','supported','contradicted','verified')`, default `'idea'` |
 | confidence_level | text | `CHECK IN ('unknown','low','medium','high')`, default `'unknown'` |
 | search_vector | tsvector | generated (`content`) |
+| archived_at | timestamptz | nullable — misma corrección que en `notes` (ver 3.5): faltaba en una versión anterior de este documento, aunque D4 y `RELATIONSHIPS_REVIEW.md` §4 ya asumían su existencia. |
 | created_at, updated_at | timestamptz | |
 
-Índices: `idx_claims_project_id`, `idx_claims_status` (para el widget de Project Pulse: "3 claims necesitan evidencia", cuando el proyecto tiene claims), `idx_claims_search_vector GIN`.
+Índices: `idx_claims_project_id`, `idx_claims_status` (para el widget de Project Pulse: "3 claims necesitan evidencia", cuando el proyecto tiene claims), `idx_claims_search_vector GIN`, índice parcial `idx_claims_active (project_id) WHERE archived_at IS NULL`.
 
 ### 3.7 `relationships` (ver D1)
 

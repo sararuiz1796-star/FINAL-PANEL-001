@@ -1,0 +1,28 @@
+# Config del Supabase CLI para desarrollo local de PARNASO.
+# No contiene credenciales — el project_id real se completa cuando se conecte
+# el proyecto Supabase existente del usuario (ver docs/HANDOFF_PRODUCT_UX.md).
+
+project_id = "parnaso"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173"]
+
+[storage]
+enabled = true
