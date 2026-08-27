@@ -35,9 +35,12 @@ export function AuthPage() {
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <div className="flex min-h-40 flex-shrink-0 items-end overflow-hidden bg-bg-dark p-6 md:min-h-screen md:w-3/5 md:p-12">
-        <div>
+        <div className="w-full">
           <p className="text-caption uppercase tracking-wide text-text-on-dark/50">Infraestructura de investigación</p>
-          <h1 className="-ml-1 font-bold leading-[0.85] text-text-on-dark" style={{ fontSize: 'var(--text-hero)' }}>
+          <h1
+            className="-ml-1 whitespace-nowrap font-bold leading-[0.8] text-text-on-dark"
+            style={{ fontSize: 'clamp(72px, 16vw, 260px)' }}
+          >
             PARNASO
           </h1>
         </div>

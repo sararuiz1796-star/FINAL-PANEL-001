@@ -70,16 +70,22 @@ export function OverviewTab() {
         label="Sources"
         value={counts?.sources}
         color={entityColor.source}
-        className="md:row-span-2"
+        className="md:row-span-2 md:rounded-tr-[40px]"
       />
-      <Tile to="documents" label="Documents" value={counts?.documents} color={entityColor.document} />
+      <Tile
+        to="documents"
+        label="Documents"
+        value={counts?.documents}
+        color={entityColor.document}
+        className="md:rounded-bl-[40px]"
+      />
       <Tile to="notes" label="Notes" value={counts?.notes} color={entityColor.note} notch />
       <Tile
         to="claims"
         label="Claims"
         value={counts?.claims}
         color={entityColor.claim}
-        className="md:col-span-2"
+        className="rounded-t-[40px] md:col-span-2"
         notch
       />
     </div>

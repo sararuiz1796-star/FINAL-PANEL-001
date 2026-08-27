@@ -6,17 +6,17 @@ import { Spinner } from '../../../components/ui/Spinner'
 import { signOut } from '../../auth/api'
 import { projectTypeColor, projectTypeLabel } from '../../../lib/projectTypeGroups'
 import { colorTokens } from '../../../lib/design-tokens'
+import { ProjectPiece, type PieceVariant } from './ProjectPiece'
+
+const VARIANTS: PieceVariant[] = ['block', 'tab', 'flag', 'frame']
 
 /**
  * Home. Header en bloque negro con presencia real (título a escala hero +
- * el conteo de proyectos como número gráfico, no un dato al pie). "Create
- * Project" es negro sólido, no un color de familia — es una acción de
- * sistema, no una pieza de contenido (NEGRO = estructura, COLOR = entidad/
- * contenido, ver plan visual). Cada card de proyecto lleva un corte
- * diagonal de color por familia (lib/projectTypeGroups.ts) ocupando
- * superficie real, no una tira de acento — y las cards se tocan entre sí
- * (gap-px + borde compartido), pared de piezas conectadas, no lista con
- * padding.
+ * el conteo de proyectos como número gráfico). "Create Project" es negro
+ * sólido — es una acción de sistema, no una pieza de contenido. Los
+ * proyectos rotan entre 4 siluetas de pieza (ProjectPiece) por posición —
+ * no una card repetida con un acento — y el primero ocupa doble columna en
+ * desktop para romper la monotonía de grilla uniforme.
  */
 export function ProjectList() {
   const { data: projects, isLoading } = useQuery({ queryKey: ['projects'], queryFn: listProjects })
@@ -52,8 +52,14 @@ export function ProjectList() {
       <div className="grid grid-cols-1 gap-px bg-bg-dark/10 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           to="/projects/new"
-          className="flex min-h-48 flex-col items-start justify-between bg-bg-dark p-6 text-text-on-dark transition-opacity hover:opacity-90"
+          className="relative flex min-h-48 flex-col justify-between bg-bg-dark p-6 pt-10 text-text-on-dark transition-opacity hover:opacity-90"
         >
+          <span
+            className="absolute -top-3 left-6 rounded-full px-4 py-1 text-caption font-semibold uppercase tracking-wide"
+            style={{ backgroundColor: colorTokens.lime, color: colorTokens.bgDark }}
+          >
+            Nuevo
+          </span>
           <Plus size={28} strokeWidth={2.5} color={colorTokens.lime} />
           <span className="text-h2 font-semibold">¿Qué estás construyendo?</span>
         </Link>
@@ -65,27 +71,17 @@ export function ProjectList() {
         )}
 
         {!isLoading &&
-          projects?.map((project) => {
-            const color = projectTypeColor(project.project_type)
-            return (
-              <Link
-                key={project.id}
-                to={`/projects/${project.id}`}
-                className="relative flex min-h-48 flex-col justify-between overflow-hidden bg-bg-light p-6 transition-opacity hover:opacity-90"
-              >
-                <div
-                  className="absolute inset-y-0 left-0 w-2/5"
-                  style={{ backgroundColor: color, clipPath: 'polygon(0 0, 100% 0, 55% 100%, 0 100%)' }}
-                />
-                <span className="relative ml-auto text-caption font-semibold uppercase tracking-wide text-text-on-light">
-                  {projectTypeLabel(project.project_type)}
-                </span>
-                <h2 className="relative ml-auto text-right text-h2 font-bold leading-tight text-text-on-light">
-                  {project.title}
-                </h2>
-              </Link>
-            )
-          })}
+          projects?.map((project, i) => (
+            <Link key={project.id} to={`/projects/${project.id}`} className="transition-opacity hover:opacity-90">
+              <ProjectPiece
+                title={project.title}
+                familyLabel={projectTypeLabel(project.project_type)}
+                color={projectTypeColor(project.project_type)}
+                variant={VARIANTS[i % VARIANTS.length]}
+                className={i === 0 ? 'lg:col-span-2' : ''}
+              />
+            </Link>
+          ))}
       </div>
 
       {!isLoading && projects && projects.length === 0 && (

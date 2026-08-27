@@ -1,5 +1,4 @@
 import { createBrowserRouter } from 'react-router-dom'
-import { Users, FileText, StickyNote, MessageSquareQuote } from 'lucide-react'
 import { RequireAuth, RedirectIfAuthed } from './RequireAuth'
 import { AuthPage } from '../features/auth/components/AuthPage'
 import { ProjectList } from '../features/projects/components/ProjectList'
@@ -49,15 +48,15 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <OverviewTab /> },
-      { path: 'sources', element: <ComingSoonTab label="Sources" sprint="Sprint 2" color={entityColor.source} icon={Users} /> },
+      { path: 'sources', element: <ComingSoonTab label="Sources" sprint="Sprint 2" color={entityColor.source} kind="nodes" /> },
       {
         path: 'documents',
-        element: <ComingSoonTab label="Documents" sprint="Sprint 3" color={entityColor.document} icon={FileText} />,
+        element: <ComingSoonTab label="Documents" sprint="Sprint 3" color={entityColor.document} kind="stack" />,
       },
-      { path: 'notes', element: <ComingSoonTab label="Notes" sprint="Sprint 4" color={entityColor.note} icon={StickyNote} /> },
+      { path: 'notes', element: <ComingSoonTab label="Notes" sprint="Sprint 4" color={entityColor.note} kind="fragments" /> },
       {
         path: 'claims',
-        element: <ComingSoonTab label="Claims" sprint="Sprint 5" color={entityColor.claim} icon={MessageSquareQuote} />,
+        element: <ComingSoonTab label="Claims" sprint="Sprint 5" color={entityColor.claim} kind="frame" />,
       },
       { path: 'connections', element: <ConnectionsPlaceholder /> },
     ],
