@@ -30,6 +30,14 @@
 
   --font-sans: 'Space Grotesk', system-ui, sans-serif;
 
+  /*
+    --text-hero: únicamente para los números de Overview (sección "Workspace
+    icónico" del plan visual) — los números ahí son elemento gráfico, no
+    solo dato. No es un tamaño nuevo de la escala general de texto, es una
+    excepción deliberada para ese único uso; el resto de la app sigue
+    display/h1/h2/body/caption.
+  */
+  --text-hero: clamp(64px, 10vw, 128px);
   --text-display: 48px;
   --text-h1: 32px;
   --text-h2: 22px;

@@ -3,67 +3,94 @@ import { Link } from 'react-router-dom'
 import { Plus, LogOut } from 'lucide-react'
 import { listProjects } from '../api'
 import { Spinner } from '../../../components/ui/Spinner'
-import { Spine } from '../../../components/ui/Spine'
 import { signOut } from '../../auth/api'
 import { projectTypeColor, projectTypeLabel } from '../../../lib/projectTypeGroups'
+import { colorTokens } from '../../../lib/design-tokens'
 
 /**
- * Home. Header en bloque oscuro (coherente con el Sidebar del Workspace).
- * "Create Project" no es un botón de toolbar arriba a la derecha — es la
- * primera tile de la grilla: empezar un proyecto es parte del universo, no
- * una acción administrativa. Cada card de proyecto lleva su Spine por
- * familia (ver lib/projectTypeGroups.ts) en vez del enum crudo.
+ * Home. Header en bloque negro con presencia real (título a escala hero +
+ * el conteo de proyectos como número gráfico, no un dato al pie). "Create
+ * Project" es negro sólido, no un color de familia — es una acción de
+ * sistema, no una pieza de contenido (NEGRO = estructura, COLOR = entidad/
+ * contenido, ver plan visual). Cada card de proyecto lleva un corte
+ * diagonal de color por familia (lib/projectTypeGroups.ts) ocupando
+ * superficie real, no una tira de acento — y las cards se tocan entre sí
+ * (gap-px + borde compartido), pared de piezas conectadas, no lista con
+ * padding.
  */
 export function ProjectList() {
   const { data: projects, isLoading } = useQuery({ queryKey: ['projects'], queryFn: listProjects })
+  const count = projects?.length ?? 0
 
   return (
     <div>
-      <header className="flex items-center justify-between bg-bg-dark p-6 text-text-on-dark">
-        <div>
-          <p className="text-caption uppercase tracking-wide text-text-on-dark/60">PARNASO</p>
-          <h1 className="text-h1 font-bold">Tu universo</h1>
+      <header className="flex items-start justify-between bg-bg-dark p-6 text-text-on-dark md:p-10">
+        <div className="flex items-end gap-6">
+          <div>
+            <p className="text-caption uppercase tracking-wide text-text-on-dark/50">PARNASO</p>
+            <h1 className="text-display font-bold leading-none">Tu universo</h1>
+          </div>
+          {!isLoading && count > 0 && (
+            <div className="hidden items-baseline gap-2 border-l border-text-on-dark/20 pl-6 sm:flex">
+              <span className="font-bold leading-none" style={{ fontSize: 'var(--text-hero)', color: colorTokens.lime }}>
+                {count}
+              </span>
+              <span className="pb-2 text-caption text-text-on-dark/60">{count === 1 ? 'proyecto' : 'proyectos'}</span>
+            </div>
+          )}
         </div>
         <button
           type="button"
           onClick={() => signOut()}
-          className="flex items-center gap-1 rounded-sm border border-text-on-dark/20 px-4 py-2 text-caption text-text-on-dark"
+          className="flex flex-shrink-0 items-center gap-1 rounded-sm border border-text-on-dark/20 px-4 py-2 text-caption text-text-on-dark"
         >
           <LogOut size={16} strokeWidth={2.5} />
           Salir
         </button>
       </header>
 
-      <div className="mx-auto max-w-3xl p-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Link
-            to="/projects/new"
-            className="flex min-h-32 flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-bg-dark/20 text-text-on-light transition-colors hover:border-bg-dark/40"
-          >
-            <Plus size={24} strokeWidth={2.5} />
-            <span className="text-body font-medium">¿Qué estás construyendo?</span>
-          </Link>
+      <div className="grid grid-cols-1 gap-px bg-bg-dark/10 sm:grid-cols-2 lg:grid-cols-3">
+        <Link
+          to="/projects/new"
+          className="flex min-h-48 flex-col items-start justify-between bg-bg-dark p-6 text-text-on-dark transition-opacity hover:opacity-90"
+        >
+          <Plus size={28} strokeWidth={2.5} color={colorTokens.lime} />
+          <span className="text-h2 font-semibold">¿Qué estás construyendo?</span>
+        </Link>
 
-          {isLoading && (
-            <div className="flex min-h-32 items-center justify-center">
-              <Spinner />
-            </div>
-          )}
-          {!isLoading &&
-            projects?.map((project) => (
-              <Link key={project.id} to={`/projects/${project.id}`}>
-                <Spine color={projectTypeColor(project.project_type)}>
-                  <h2 className="text-h2 font-semibold">{project.title}</h2>
-                  <p className="mt-1 text-caption text-text-on-light">{projectTypeLabel(project.project_type)}</p>
-                </Spine>
-              </Link>
-            ))}
-        </div>
-
-        {!isLoading && projects && projects.length === 0 && (
-          <p className="mt-6 text-caption text-text-on-light">Todavía no hay proyectos acá.</p>
+        {isLoading && (
+          <div className="flex min-h-48 items-center justify-center bg-bg-light">
+            <Spinner />
+          </div>
         )}
+
+        {!isLoading &&
+          projects?.map((project) => {
+            const color = projectTypeColor(project.project_type)
+            return (
+              <Link
+                key={project.id}
+                to={`/projects/${project.id}`}
+                className="relative flex min-h-48 flex-col justify-between overflow-hidden bg-bg-light p-6 transition-opacity hover:opacity-90"
+              >
+                <div
+                  className="absolute inset-y-0 left-0 w-2/5"
+                  style={{ backgroundColor: color, clipPath: 'polygon(0 0, 100% 0, 55% 100%, 0 100%)' }}
+                />
+                <span className="relative ml-auto text-caption font-semibold uppercase tracking-wide text-text-on-light">
+                  {projectTypeLabel(project.project_type)}
+                </span>
+                <h2 className="relative ml-auto text-right text-h2 font-bold leading-tight text-text-on-light">
+                  {project.title}
+                </h2>
+              </Link>
+            )
+          })}
       </div>
+
+      {!isLoading && projects && projects.length === 0 && (
+        <p className="p-6 text-caption text-text-on-light md:p-10">Todavía no hay proyectos acá.</p>
+      )}
     </div>
   )
 }

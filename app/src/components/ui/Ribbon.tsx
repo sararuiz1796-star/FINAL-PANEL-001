@@ -8,8 +8,8 @@ import type { ReactNode } from 'react'
 export function RibbonDivider({ color }: { color: string }) {
   return (
     <div
-      className="h-3 w-full"
-      style={{ backgroundColor: color, clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 40%, 0 100%)' }}
+      className="h-8 w-full"
+      style={{ backgroundColor: color, clipPath: 'polygon(0 0, 100% 0, 100% 100%, 52% 20%, 50% 100%, 48% 20%, 0 100%)' }}
     />
   )
 }

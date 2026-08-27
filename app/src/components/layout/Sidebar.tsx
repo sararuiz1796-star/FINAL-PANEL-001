@@ -1,16 +1,17 @@
 import { NavLink } from 'react-router-dom'
 import { workspaceNavItems, type NavEntityType } from '../../lib/navigation'
-import { entityColor } from '../../lib/design-tokens'
+import { entityColor, contrastTextColor } from '../../lib/design-tokens'
 
 /**
  * Sidebar del Research Workspace. Recorre lib/navigation.ts — no hardcodea
  * el orden ni los labels acá (ver docs/ARCHITECTURE.md §6).
  *
- * El estado activo se tiñe con el color de la entidad correspondiente — el
- * sidebar se convierte en el mapa de colores del propio sistema, no en un
- * tinte genérico. "Overview" y "Connections" no tienen color de entidad
- * (Connections es una capacidad transversal, no una entidad más — ver
- * docs/ARCHITECTURE.md §7) y usan un tinte neutro en su lugar.
+ * El estado activo llena la fila completa con el color sólido de la
+ * entidad correspondiente (no un tinte translúcido) — una luz que se
+ * enciende dentro del riel negro, no un resaltado genérico. "Overview" y
+ * "Connections" no tienen color de entidad (Connections es una capacidad
+ * transversal, no una entidad más — ver docs/ARCHITECTURE.md §7) y usan
+ * blanco sólido en su lugar.
  *
  * Responsive: rail vertical en desktop, barra inferior de solo íconos en
  * mobile (patrón de pulgar).
@@ -27,22 +28,21 @@ export function Sidebar() {
     <nav
       className="flex flex-shrink-0 flex-row justify-around gap-1 bg-bg-dark p-2 text-text-on-dark
                  fixed bottom-0 left-0 right-0 z-20
-                 md:static md:h-full md:w-56 md:flex-col md:justify-start md:p-4"
+                 md:static md:h-full md:w-56 md:flex-col md:justify-start md:gap-1 md:p-4"
     >
       {workspaceNavItems.map((item) => {
         const Icon = item.icon
-        const tint = ACTIVE_COLOR[item.key]
+        const activeColor = ACTIVE_COLOR[item.key] ?? '#FFFFFF'
         return (
           <NavLink
             key={item.key}
             to={item.path}
             end={item.path === ''}
-            className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 rounded-sm px-2 py-1 text-caption
-               md:flex-row md:gap-2 md:px-2 md:py-1 md:text-body ${isActive ? '' : ''}`
-            }
+            className="flex flex-col items-center gap-0.5 rounded-sm px-2 py-1.5 text-caption font-medium
+                       md:flex-row md:gap-3 md:px-3 md:py-2 md:text-body"
             style={({ isActive }) => ({
-              backgroundColor: isActive ? `${tint ?? '#FFFFFF'}${tint ? '26' : '1A'}` : 'transparent',
+              backgroundColor: isActive ? activeColor : 'transparent',
+              color: isActive ? contrastTextColor(activeColor) : '#FFFFFF',
             })}
           >
             <Icon size={20} strokeWidth={2.5} />

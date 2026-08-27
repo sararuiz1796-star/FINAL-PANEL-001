@@ -9,11 +9,11 @@ import type { ProjectType } from '../../../types/database'
 
 /**
  * "¿Qué estás construyendo?", no "Complete este formulario". Título grande
- * como si se escribiera en una hoja en blanco (no un input con label
- * encima); el botón de crear aparece recién cuando ambos campos están
- * completos, para que el momento se sienta rápido, no como un onboarding.
- * Decisión UX 2 (aprobada): solo title + project_type acá; description/
- * research_question quedan para después, dentro del Workspace.
+ * como si se escribiera en una hoja en blanco, asimétrico (no centrado en
+ * una card), casi manifiesto. El botón de crear aparece recién cuando
+ * ambos campos están completos. Decisión UX 2 (aprobada): solo title +
+ * project_type acá; description/research_question quedan para después,
+ * dentro del Workspace.
  */
 export function CreateProjectForm() {
   const [title, setTitle] = useState('')
@@ -36,37 +36,39 @@ export function CreateProjectForm() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
-      <Link to="/" className="inline-flex items-center gap-1 text-caption text-text-on-light">
-        <ArrowLeft size={16} strokeWidth={2.5} />
-        Volver
-      </Link>
+    <div>
+      <div className="bg-bg-dark p-4 md:p-6">
+        <Link to="/" className="inline-flex items-center gap-1 text-caption text-text-on-dark/70">
+          <ArrowLeft size={16} strokeWidth={2.5} />
+          Volver
+        </Link>
+      </div>
 
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-10">
+      <form onSubmit={handleSubmit} className="max-w-3xl p-6 md:p-10">
         <div>
-          <p className="text-caption font-medium uppercase tracking-wide text-text-on-light">
-            ¿Qué estás construyendo?
-          </p>
+          <p className="text-h2 font-semibold uppercase tracking-tight text-text-on-light">¿Qué estás construyendo?</p>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Escribí el título de tu proyecto..."
+            placeholder="Escribí el título..."
             autoFocus
             required
-            className="mt-2 w-full border-b-2 border-bg-dark/15 bg-transparent pb-2 text-h1 font-bold text-text-on-light outline-none placeholder:text-bg-dark/25 focus:border-bg-dark"
+            className="mt-3 w-full border-b-4 border-bg-dark/15 bg-transparent pb-3 text-h1 font-bold leading-none text-text-on-light outline-none placeholder:text-bg-dark/20 focus:border-bg-dark md:text-display"
           />
         </div>
 
-        <TypeTileGrid value={projectType} onChange={setProjectType} />
+        <div className="mt-10">
+          <TypeTileGrid value={projectType} onChange={setProjectType} />
+        </div>
 
         {mutation.isError && (
-          <p className="text-caption text-state-error">
+          <p className="mt-6 text-caption text-state-error">
             {mutation.error instanceof Error ? mutation.error.message : 'No se pudo crear el proyecto.'}
           </p>
         )}
 
         {title && projectType && (
-          <Button type="submit" disabled={mutation.isPending} className="self-start">
+          <Button type="submit" disabled={mutation.isPending} className="mt-10">
             {mutation.isPending ? 'Creando...' : 'Create Project'}
           </Button>
         )}

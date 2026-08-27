@@ -30,3 +30,16 @@ export const entityColor: Record<EntityKind, string> = {
   claim: colorTokens.sky,
   event: colorTokens.pink, // reservado para Phase 2 (Event) — no se usa en Sprint 1-8
 }
+
+/**
+ * Color de texto de alto contraste sobre un fondo dado — blanco o negro
+ * según el color base (DESIGN_SYSTEM.md §5, regla de badges, reutilizada
+ * ahora también para superficies grandes de color sólido).
+ */
+export function contrastTextColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return luminance > 0.6 ? colorTokens.textOnLight : colorTokens.textOnDark
+}
