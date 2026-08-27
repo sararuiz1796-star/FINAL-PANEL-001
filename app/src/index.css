@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&family=Space+Mono:wght@400;700&display=swap");
 @import "tailwindcss";
 
 /*
@@ -58,6 +59,46 @@
   --radius-sm: 8px;
   --radius-md: 16px;
   --radius-lg: 24px;
+
+  /*
+    Tokens de la pantalla "El universo" (handoff hifi "Retratos del Valle",
+    2026). Paleta y tipografía propias, deliberadamente distintas de las de
+    arriba: no reemplazan DESIGN_SYSTEM.md (Home/ComingSoon/Connections
+    siguen usando --color-purple/orange/lime/sky sin cambios) — conviven
+    porque hoy solo la pantalla de Universo del proyecto migra al nuevo
+    lenguaje visual. Prefijo `universe-` para que no se confundan con los
+    de arriba.
+  */
+  --color-universe-black: #0c0b0a;
+  --color-universe-desk: #100f0d;
+  --color-universe-cream: #f2e9da;
+  --color-universe-cream-elevated: #fffdf7;
+  --color-universe-cream-sunken: #e9dfcb;
+  --color-universe-line-on-cream: #ded5c4;
+  --color-universe-line-on-cream-2: #c9c0ae;
+  --color-universe-line-on-cream-dashed: #a79f91;
+  --color-universe-line-on-black: #3a3630;
+  --color-universe-text-muted-on-cream: #6e675c;
+  --color-universe-text-muted-on-black: #8a857a;
+  --color-universe-text-soft-on-black: #cfc7b8;
+  --color-universe-text-inactive: #7a756b;
+  --color-universe-body-on-cream: #3a3630;
+
+  --color-universe-source: #1b3cff;
+  --color-universe-note: #c6f24e;
+  --color-universe-idea: #e8318e;
+  --color-universe-claim: #ff4a17;
+  --color-universe-question: #ffc400;
+  --color-universe-document: #0c0b0a;
+
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-ui: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-caption: "Space Mono", ui-monospace, monospace;
+}
+
+::selection {
+  background: var(--color-universe-note);
+  color: var(--color-universe-desk);
 }
 
 body {
