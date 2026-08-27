@@ -171,7 +171,7 @@ Adopto el renombre: en el roadmap, Phase 4 pasa de "Writing Workspace" a **"Crea
 | Roadmap Phase 4 | "Writing Workspace" | **"Creation Workspace"** (sin cambios de esquema ahora) |
 | `documents` | (se consideró agregar `document_role`) | **no se agrega** — el rol emerge de `relationship_type`, no de una columna |
 
-Nada de esto agrega tablas nuevas, ninguna migración destructiva, y el núcleo (`projects`, `project_members`, `sources`, `documents`, `notes`, `claims`, `relationships`) sigue siendo exactamente 7 tablas.
+Nada de esto agrega tablas nuevas, ninguna migración destructiva, y el núcleo (`projects`, `project_members`, `sources`, `documents`, `notes`, `claims`, `relationships`) sigue siendo exactamente 7 tablas. (Nota posterior: `docs/CREATIVE_CONTEXT.md` agrega `profiles` como una octava tabla del núcleo — identidad del creador, no contenido de investigación.)
 
 ---
 

@@ -244,6 +244,45 @@ Cada tabla con contenido narrativo (`sources`, `documents`, `notes`, `claims`) t
 
 `people`, `events`, `places`, `topics`, `interviews` se agregan como tablas nuevas con `project_id` FK, sin tocar el núcleo. Se integran al grafo de relaciones únicamente ampliando el `CHECK` de `entity_type` en `relationships` y el `CASE` del trigger de validación — por eso vale la pena la decisión D1 ahora.
 
+### 3.10 `profiles` — identidad del creador, separada del acceso al proyecto (ver `docs/CREATIVE_CONTEXT.md`)
+
+`project_members` (3.2) ya resuelve *acceso*: qué usuario puede ver/editar qué proyecto. `profiles` resuelve algo distinto: la identidad y (en el futuro) las prácticas creativas de la persona — independiente de cualquier proyecto puntual. Se crea desde Sprint 1 aunque el único dato que usa el MVP es el nombre para mostrar, por el mismo motivo que `project_members` (D3): crearla después de que existan usuarios reales exige backfill; crearla ahora no cuesta nada.
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| id | uuid PK | `references auth.users(id) on delete cascade` |
+| full_name | text | |
+| avatar_url | text | |
+| created_at, updated_at | timestamptz | |
+
+```sql
+create table profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  full_name text,
+  avatar_url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+  -- reservado, NO se implementa en Sprint 1:
+  -- creative_practices text[]  -- multi-selección "¿Qué haces?" del futuro onboarding de Creator Profile
+);
+
+create or replace function handle_new_user()
+returns trigger language plpgsql security definer as $$
+begin
+  insert into public.profiles (id, full_name) values (new.id, new.raw_user_meta_data->>'full_name');
+  return new;
+end;
+$$;
+
+create trigger trg_handle_new_user
+  after insert on auth.users
+  for each row execute function handle_new_user();
+```
+
+RLS (política mínima, solo-lectura-propia — se amplía cuando exista colaboración real en Phase 5): ver `docs/CREATIVE_CONTEXT.md` §2 para el SQL completo de `profiles_select_own`/`profiles_update_own`.
+
+`creative_practices` (el "Creator Profile" del brief — periodismo, escritura, fotografía, etc., multi-selección) queda comentado a propósito: no se implementa onboarding ni personalización en este ciclo. **"Creative Context" (qué necesita un proyecto específico) no gana columna ni tabla propia en ningún momento** — se infiere de los `sources.type`/`documents.file_type`/`relationship_type` que ya existen en cada proyecto, con la misma lógica de "calcular, no almacenar" que usa Project Pulse (ver `docs/CREATIVE_CONTEXT.md` §1).
+
 ---
 
 ## 4. Estrategia de Row Level Security
@@ -262,6 +301,7 @@ $$;
 ```
 
 Políticas por tabla:
+- `profiles`: cada usuario solo ve/edita su propia fila (`auth.uid() = id`) — ver `docs/CREATIVE_CONTEXT.md` §2. Se amplía a "co-miembros pueden verse entre sí" cuando exista colaboración real (Phase 5).
 - `projects`: `select/update/delete` donde `user_has_project_access(id)`; `insert` con `owner_id = auth.uid()` (y un trigger que inserta automáticamente la fila `project_members(role='owner')` al crear el proyecto).
 - `project_members`: solo lectura para miembros del mismo proyecto; escritura reservada a `role = 'owner'` (relevante recién en Phase 5, pero la política ya queda bien desde ahora).
 - `sources`, `documents`, `notes`, `claims`, `relationships`: `select/insert/update/delete` donde `user_has_project_access(project_id)`.
@@ -351,11 +391,11 @@ Pantallas explícitamente fuera del MVP (quedan en el mapa conceptual, no se con
 
 ## 8. Orden de implementación
 
-Confirmo el orden que propusiste en la sección 49, con una precisión: Sprint 1 incluye la fundación de base de datos completa (las 7 tablas del MVP, no solo `projects`), porque `relationships` necesita que las demás tablas ya existan para el trigger de validación.
+Confirmo el orden que propusiste en la sección 49, con una precisión: Sprint 1 incluye la fundación de base de datos completa (las 8 tablas del MVP — incluyendo `profiles`, ver `docs/CREATIVE_CONTEXT.md` §2 — no solo `projects`), porque `relationships` necesita que las demás tablas ya existan para el trigger de validación.
 
 | Sprint | Contenido |
 |---|---|
-| 1 | Auth, Home, Create Project, Research Workspace (shell), migración inicial completa (las 7 tablas + RLS + triggers) |
+| 1 | Auth, Home, Create Project, Research Workspace (shell), migración inicial completa (las 8 tablas + RLS + triggers) |
 | 2 | Sources, Source Detail |
 | 3 | Documents, Document Detail |
 | 4 | Notes |
