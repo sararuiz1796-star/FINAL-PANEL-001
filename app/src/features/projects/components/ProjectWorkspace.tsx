@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { getProject } from '../api'
 import { Sidebar } from '../../../components/layout/Sidebar'
 import { Spinner } from '../../../components/ui/Spinner'
+import { RibbonDivider } from '../../../components/ui/Ribbon'
+import { projectTypeColor, projectTypeLabel } from '../../../lib/projectTypeGroups'
 
 /**
  * Shell del Research Workspace: header de proyecto + Sidebar + contenido de
@@ -25,16 +27,23 @@ export function ProjectWorkspace() {
     )
   }
 
+  const accent = project ? projectTypeColor(project.project_type) : '#0A0A0A'
+
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen flex-col md:flex-row">
       <Sidebar />
-      <div className="flex-1 overflow-y-auto">
-        <header className="border-b border-bg-dark/10 p-6">
-          <h1 className="text-h1 font-bold">{project?.title}</h1>
-          {project?.research_question && (
-            <p className="mt-1 text-body text-text-on-light">{project.research_question}</p>
-          )}
+      <div className="flex-1 overflow-y-auto pb-16 md:pb-0">
+        <header className="bg-bg-dark p-6 text-text-on-dark">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: accent }} />
+            <span className="text-caption uppercase tracking-wide text-text-on-dark/60">
+              {project ? projectTypeLabel(project.project_type) : ''}
+            </span>
+          </div>
+          <h1 className="mt-1 text-h1 font-bold">{project?.title}</h1>
+          {project?.research_question && <p className="mt-1 text-body text-text-on-dark/80">{project.research_question}</p>}
         </header>
+        <RibbonDivider color={accent} />
         <div className="p-6">
           <Outlet context={{ projectId }} />
         </div>
