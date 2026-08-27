@@ -61,13 +61,14 @@ create table relationships (
   created_at          timestamptz not null default now(),
 
   constraint relationships_source_entity_type_check
-    check (source_entity_type in ('source','document','note','claim')),
+    check (source_entity_type in ('source','document','note','claim','project')),
   constraint relationships_target_entity_type_check
-    check (target_entity_type in ('source','document','note','claim')),
+    check (target_entity_type in ('source','document','note','claim','project')),
   constraint relationships_type_check
     check (relationship_type in (
-      'supports','contradicts','mentions','originated_from',
-      'related_to','derived_from','concerns','references','corroborates'
+      'supports','contradicts','corroborates','mentions','references',
+      'related_to','derived_from','originated_from','concerns',
+      'inspires','contrasts_with','influenced_by'
     )),
   constraint relationships_no_self_reference
     check (not (source_entity_type = target_entity_type and source_entity_id = target_entity_id)),
@@ -100,7 +101,16 @@ Todas las constraints tienen nombre explícito a propósito: cuando en Phase 2 s
 | 9 | note → N2 | `concerns` | source → S2 (Terravix) | Pregunta pendiente dirigida a esta fuente. |
 | 10 | claim → C2 | `contradicts` | claim → C1 | *(opcional)* si se decide modelar que "ocultamiento deliberado" tensiona con "adquisición simple" — muestra que `relationships` no está limitado a document/source→claim, también conecta claims entre sí. |
 
-Con estas 8-10 filas, `Claim Detail` para C1 puede construir sin lógica especial:
+Dos filas más, para mostrar que el mismo modelo cubre conexiones no evidenciales — el caso que motivó el reframing (`docs/CONCEPTUAL_REFRAMING.md`):
+
+| # | source (tipo→entidad) | relationship_type | target (tipo→entidad) | notes |
+|---|---|---|---|---|
+| 11 | source → S1 (Marta Uribe, `type='person'`) | `originated_from` | document → D2 | *(equivalente a la fila 4, mismo hecho visto desde el otro lado — se elige un solo sentido al crear la relación, no ambos)* |
+| 12 | source → *(hipotética, `type='book'`)* "El despojo de la tierra" | `influenced_by` | project → *(el proyecto Valle de Q. mismo)* | Un libro que no respalda ni contradice ningún Claim puntual, pero está formando el marco conceptual completo de la investigación — se conecta directamente al proyecto, no a un Claim o Note artificial. |
+
+La fila 12 es la que requiere que `'project'` sea un `entity_type` válido (ver §1 y la nota especial en §3) — sin eso, el usuario tendría que inventar una Note vacía solo para tener algo a lo cual enganchar el libro.
+
+Con estas filas, `Claim Detail` para C1 puede construir sin lógica especial:
 - **Supporting Evidence**: filas 1, 2, 3 (donde `target = claim/C1` y `relationship_type in ('supports','corroborates')`).
 - **Notas relacionadas**: fila 6.
 - Y para C2: **Supporting Evidence** = fila 5; si se agrega la fila 10, además aparece "Contradicted by C1" — exactamente el comportamiento que el brief pide en la sección 29 ("¿Qué contradice?").
@@ -123,7 +133,7 @@ insert into relationships (
 
 ## 3. Cómo se evita crear relaciones inválidas
 
-Función de mapeo (evita el bug de plurales irregulares, ver `ARCHITECTURE.md` §3.7):
+Función de mapeo (evita el bug de plurales irregulares, ver `ARCHITECTURE.md` §3.7). `'project'` queda deliberadamente fuera de este mapeo — no pasa por `EXISTS ... AND project_id = ...` genérico porque `projects` no tiene una columna `project_id` propia; se resuelve con una rama especial en el trigger:
 
 ```sql
 create or replace function entity_table_name(p_entity_type text)
@@ -133,38 +143,57 @@ returns text language sql immutable as $$
     when 'document' then 'documents'
     when 'note'     then 'notes'
     when 'claim'    then 'claims'
-    else null
+    else null   -- 'project' se maneja aparte en el trigger, no acá
   end;
 $$;
 ```
 
-Trigger de validación:
+Trigger de validación, con la rama especial para `'project'`:
 
 ```sql
 create or replace function validate_relationship_entities()
 returns trigger language plpgsql as $$
 declare
-  v_source_table text := entity_table_name(NEW.source_entity_type);
-  v_target_table text := entity_table_name(NEW.target_entity_type);
+  v_source_table text;
+  v_target_table text;
   v_exists boolean;
 begin
-  if v_source_table is null then
-    raise exception 'relationships: tipo de entidad source "%" no reconocido', NEW.source_entity_type;
-  end if;
-  if v_target_table is null then
-    raise exception 'relationships: tipo de entidad target "%" no reconocido', NEW.target_entity_type;
+  -- lado source
+  if NEW.source_entity_type = 'project' then
+    select exists(select 1 from projects where id = NEW.source_entity_id and id = NEW.project_id)
+      into v_exists;
+    if not v_exists then
+      raise exception 'relationships: el proyecto % no coincide con project_id de la relación', NEW.source_entity_id;
+    end if;
+  else
+    v_source_table := entity_table_name(NEW.source_entity_type);
+    if v_source_table is null then
+      raise exception 'relationships: tipo de entidad source "%" no reconocido', NEW.source_entity_type;
+    end if;
+    execute format('select exists(select 1 from %I where id = $1 and project_id = $2)', v_source_table)
+      into v_exists using NEW.source_entity_id, NEW.project_id;
+    if not v_exists then
+      raise exception 'relationships: % % no existe en el proyecto %', NEW.source_entity_type, NEW.source_entity_id, NEW.project_id;
+    end if;
   end if;
 
-  execute format('select exists(select 1 from %I where id = $1 and project_id = $2)', v_source_table)
-    into v_exists using NEW.source_entity_id, NEW.project_id;
-  if not v_exists then
-    raise exception 'relationships: % % no existe en el proyecto %', NEW.source_entity_type, NEW.source_entity_id, NEW.project_id;
-  end if;
-
-  execute format('select exists(select 1 from %I where id = $1 and project_id = $2)', v_target_table)
-    into v_exists using NEW.target_entity_id, NEW.project_id;
-  if not v_exists then
-    raise exception 'relationships: % % no existe en el proyecto %', NEW.target_entity_type, NEW.target_entity_id, NEW.project_id;
+  -- lado target (mismo patrón)
+  if NEW.target_entity_type = 'project' then
+    select exists(select 1 from projects where id = NEW.target_entity_id and id = NEW.project_id)
+      into v_exists;
+    if not v_exists then
+      raise exception 'relationships: el proyecto % no coincide con project_id de la relación', NEW.target_entity_id;
+    end if;
+  else
+    v_target_table := entity_table_name(NEW.target_entity_type);
+    if v_target_table is null then
+      raise exception 'relationships: tipo de entidad target "%" no reconocido', NEW.target_entity_type;
+    end if;
+    execute format('select exists(select 1 from %I where id = $1 and project_id = $2)', v_target_table)
+      into v_exists using NEW.target_entity_id, NEW.project_id;
+    if not v_exists then
+      raise exception 'relationships: % % no existe en el proyecto %', NEW.target_entity_type, NEW.target_entity_id, NEW.project_id;
+    end if;
   end if;
 
   return NEW;
@@ -176,6 +205,8 @@ create trigger trg_validate_relationship_entities
   for each row execute function validate_relationship_entities();
 ```
 
+La rama `'project'` exige `id = entity_id AND id = NEW.project_id` — es decir, la entidad "es" literalmente el proyecto al que pertenece la relación. Esto bloquea, por ejemplo, que una relación creada dentro del Proyecto A apunte a `entity_type='project', entity_id=<id del Proyecto B>` — ni siquiera RLS necesita intervenir ahí, el trigger ya lo rechaza porque `id != NEW.project_id`.
+
 Casos concretos que este diseño bloquea:
 
 | Intento inválido | Qué lo detiene | Dónde |
@@ -186,6 +217,7 @@ Casos concretos que este diseño bloquea:
 | La misma relación `document D1 --supports--> claim C1` insertada dos veces | `relationships_unique_edge` | constraint |
 | Un usuario B intenta crear una relación usando un `document_id` que existe, pero en el **proyecto de otro usuario** (A) | El `EXISTS` exige `project_id = NEW.project_id` — si el documento pertenece a otro proyecto, la validación falla igual que si no existiera | trigger (y además RLS lo bloquea antes, ver §5) |
 | `relationship_type = 'implies'` (no está en la lista cerrada) | `relationships_type_check` | constraint |
+| `entity_type = 'project'` apuntando al **id de un proyecto distinto** al de la relación (ej. relación creada en el Proyecto A pero `target_entity_id` = id del Proyecto B) | La rama especial exige `id = entity_id AND id = NEW.project_id` — un proyecto distinto nunca cumple esa igualdad | trigger (rama `'project'`) |
 
 ---
 
@@ -315,15 +347,15 @@ create policy people_all on people for all
   with check (user_has_project_access(project_id));
 ```
 
-**Paso 2 — ampliar los CHECK de `relationships`** (dos `ALTER`, cero migración de datos):
+**Paso 2 — ampliar los CHECK de `relationships`** (dos `ALTER`, cero migración de datos; `'project'` ya está en la lista base desde el MVP, no es parte de esta extensión):
 ```sql
 alter table relationships drop constraint relationships_source_entity_type_check;
 alter table relationships add constraint relationships_source_entity_type_check
-  check (source_entity_type in ('source','document','note','claim','person'));
+  check (source_entity_type in ('source','document','note','claim','project','person'));
 
 alter table relationships drop constraint relationships_target_entity_type_check;
 alter table relationships add constraint relationships_target_entity_type_check
-  check (target_entity_type in ('source','document','note','claim','person'));
+  check (target_entity_type in ('source','document','note','claim','project','person'));
 ```
 
 **Paso 3 — una línea en `entity_table_name()`:**
@@ -341,7 +373,7 @@ returns text language sql immutable as $$
 $$;
 ```
 
-Con esos tres pasos, ya se puede insertar `source S1 (Marta Uribe) --related_to--> person <nueva fila en people>` sin que `sources`, `documents`, `notes`, `claims`, ni ninguna pantalla del MVP (`Claim Detail`, `Connections`, `Research Health`) necesite cambiar una sola línea — todas ya recorren `relationships` de forma genérica por `entity_type`/`entity_id`.
+Con esos tres pasos, ya se puede insertar `source S1 (Marta Uribe) --related_to--> person <nueva fila en people>` sin que `sources`, `documents`, `notes`, `claims`, ni ninguna pantalla del MVP (`Claim Detail`, `Connections`, `Project Pulse`) necesite cambiar una sola línea — todas ya recorren `relationships` de forma genérica por `entity_type`/`entity_id`.
 
 El mismo patrón de 3 pasos aplica igual para `event`, `place`, `topic`, `interview`. Si alguna de esas entidades necesita un verbo de relación nuevo (ej. `located_at` para Event→Place), el `ALTER` correspondiente es sobre `relationships_type_check`, con el mismo costo.
 

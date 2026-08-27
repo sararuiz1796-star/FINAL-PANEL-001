@@ -29,7 +29,7 @@ El corazón del producto ("nada está aislado") depende de cómo se modelen las 
 - Un trigger `BEFORE INSERT/UPDATE` (`validate_relationship_entities()`) que, según el `entity_type`, verifica con `EXISTS` que el id realmente exista en la tabla correspondiente y pertenezca al mismo `project_id`. Esto da integridad equivalente a una FK sin pagar el costo de tablas combinatorias.
 - `UNIQUE(project_id, source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type)` para evitar relaciones duplicadas.
 
-Esta es la decisión más importante del documento — todo el valor del producto (Connections, Research Health, futuro Graph) depende de que esto escale sin reconstrucción. Necesito tu aprobación explícita antes de escribirla en una migración.
+Esta es la decisión más importante del documento — todo el valor del producto (Connections, Project Pulse, futuro Graph) depende de que esto escale sin reconstrucción. Necesito tu aprobación explícita antes de escribirla en una migración.
 
 ### D2 — Enums: `CHECK` sobre texto vs. tipos `ENUM` nativos de Postgres
 
@@ -85,7 +85,7 @@ Convención: toda tabla usa `id uuid primary key default gen_random_uuid()`, `cr
 | title | text | not null |
 | subtitle | text | |
 | description | text | |
-| project_type | text | `CHECK IN ('journalism','book','documentary','screenplay','essay','academic_research','artistic_research','communication_project','other')` |
+| project_type | text | `CHECK IN ('journalism','book','novel','poetry_collection','essay','documentary','screenplay','photo_series','album','exhibition','artwork','design_project','academic_research','artistic_research','communication_project','personal_research','other')` — ampliado para cubrir creación artística, no solo investigación factual (ver `docs/CONCEPTUAL_REFRAMING.md` §6) |
 | status | text | `CHECK IN ('active','paused','completed','archived')`, default `'active'` |
 | research_question | text | |
 | cover_image | text | ruta en Storage |
@@ -106,14 +106,14 @@ Convención: toda tabla usa `id uuid primary key default gen_random_uuid()`, `cr
 
 `UNIQUE(project_id, user_id)`. Índice: `idx_project_members_user_id (user_id)`.
 
-### 3.3 `sources`
+### 3.3 `sources` — conceptualmente "Source / Reference" (ver `docs/CONCEPTUAL_REFRAMING.md` §1)
 
 | Columna | Tipo | Notas |
 |---|---|---|
 | id | uuid PK | |
 | project_id | uuid | `references projects(id) on delete cascade`, not null |
 | name | text | not null |
-| type | text | `CHECK IN ('person','organization','institution','anonymous','other')` |
+| type | text | `CHECK IN ('person','organization','institution','book','article','website','film','song','artwork','photograph','archive','conversation','place','object','anonymous','other')` — ampliado para cubrir referencias creativas, no solo fuentes entrevistadas |
 | role | text | |
 | organization | text | |
 | email | text | |
@@ -122,15 +122,17 @@ Convención: toda tabla usa `id uuid primary key default gen_random_uuid()`, `cr
 | website | text | |
 | how_found | text | |
 | relationship_to_research | text | |
-| reliability_level | text | `CHECK IN ('unknown','low','medium','high','very_high')`, default `'unknown'` |
-| verification_status | text | `CHECK IN ('unverified','partially_verified','verified','disputed')`, default `'unverified'` |
-| attribution_status | text | `CHECK IN ('on_record','off_record','background','anonymous','not_specified')`, default `'not_specified'` |
+| reliability_level | text | `CHECK IN ('unknown','low','medium','high','very_high')`, default `'unknown'` — **opcional en UI**: se muestra/pide solo cuando `type` es persona/organización/institución/archivo; no aplica a libro/película/canción/fotografía |
+| verification_status | text | `CHECK IN ('unverified','partially_verified','verified','disputed')`, default `'unverified'` — mismo criterio de opcionalidad condicional que arriba |
+| attribution_status | text | `CHECK IN ('on_record','off_record','background','anonymous','not_specified')`, default `'not_specified'` — idem |
 | notes | text | |
 | search_vector | tsvector | generated (`name`, `notes`, `organization`) — ver 3.8 |
 | archived_at | timestamptz | nullable |
 | created_at, updated_at | timestamptz | |
 
 Índices: `idx_sources_project_id (project_id)`, `idx_sources_search_vector GIN (search_vector)`, índice parcial `idx_sources_active (project_id) WHERE archived_at IS NULL`.
+
+Nota: `reliability_level`/`verification_status`/`attribution_status` no se eliminan ni se ramifican en columnas separadas — siguen siendo las mismas tres columnas para todo `type`, simplemente la UI decide si mostrarlas/pedirlas según el `type` seleccionado. No hay rama de esquema, solo de formulario.
 
 ### 3.4 `documents`
 
@@ -183,7 +185,7 @@ Convención: toda tabla usa `id uuid primary key default gen_random_uuid()`, `cr
 | search_vector | tsvector | generated (`content`) |
 | created_at, updated_at | timestamptz | |
 
-Índices: `idx_claims_project_id`, `idx_claims_status` (para el widget de Research Health: "3 claims necesitan evidencia"), `idx_claims_search_vector GIN`.
+Índices: `idx_claims_project_id`, `idx_claims_status` (para el widget de Project Pulse: "3 claims necesitan evidencia", cuando el proyecto tiene claims), `idx_claims_search_vector GIN`.
 
 ### 3.7 `relationships` (ver D1)
 
@@ -191,17 +193,19 @@ Convención: toda tabla usa `id uuid primary key default gen_random_uuid()`, `cr
 |---|---|---|
 | id | uuid PK | |
 | project_id | uuid | `references projects(id) on delete cascade`, not null — desnormalizado a propósito para que RLS y consultas de "todo lo del proyecto X" no requieran joins |
-| source_entity_type | text | `CHECK IN ('source','document','note','claim')` — se amplía en Phase 2 |
+| source_entity_type | text | `CHECK IN ('source','document','note','claim','project')` — `'project'` permite conectar algo directamente al proyecto como totalidad (ver nota especial más abajo); se amplía más en Phase 2 |
 | source_entity_id | uuid | not null, validado por trigger, no FK nativa |
 | target_entity_type | text | mismo check |
 | target_entity_id | uuid | not null, validado por trigger |
-| relationship_type | text | `CHECK IN ('supports','contradicts','mentions','originated_from','related_to','derived_from','concerns','references','corroborates')`, default `'related_to'` |
+| relationship_type | text | `CHECK IN ('supports','contradicts','corroborates','mentions','references','related_to','derived_from','originated_from','concerns','inspires','contrasts_with','influenced_by')`, default `'related_to'` — se agregaron `inspires`, `contrasts_with`, `influenced_by` para cubrir conexiones no evidenciales (ver `docs/CONCEPTUAL_REFRAMING.md` §5) |
 | notes | text | contexto opcional de la relación |
 | created_by | uuid | `references auth.users(id)` |
 | created_at | timestamptz | |
 
+**Nota especial — `'project'` como entidad.** A diferencia de `source`/`document`/`note`/`claim`, `projects` no tiene una columna `project_id` que apunte a sí misma: su propio `id` *es* el proyecto. El trigger de validación (ver `docs/RELATIONSHIPS_REVIEW.md` §3 y §6) necesita una rama especial para este caso: `EXISTS (SELECT 1 FROM projects WHERE id = entity_id AND id = NEW.project_id)` en vez del `EXECUTE format(...)` genérico contra `entity_table_name()`. Esto habilita relaciones como *"este libro influencia el proyecto en su conjunto"* sin forzar una Note intermedia artificial.
+
 Constraints (nombradas explícitamente para poder hacer `ALTER ... DROP/ADD CONSTRAINT` cuando se amplíen los tipos en Phase 2, sin adivinar nombres autogenerados):
-- `relationships_source_entity_type_check` — `CHECK (source_entity_type IN ('source','document','note','claim'))`.
+- `relationships_source_entity_type_check` — `CHECK (source_entity_type IN ('source','document','note','claim','project'))`.
 - `relationships_target_entity_type_check` — mismo check sobre `target_entity_type`.
 - `relationships_no_self_reference` — `CHECK (NOT (source_entity_type = target_entity_type AND source_entity_id = target_entity_id))`.
 - `relationships_unique_edge` — `UNIQUE(project_id, source_entity_type, source_entity_id, target_entity_type, target_entity_id, relationship_type)`.
@@ -325,7 +329,7 @@ Welcome / Login
   └── Home (lista de investigaciones)
         ├── Create Research
         └── Research Workspace [project_id]
-              ├── Overview          (conteos, Research Health, actividad reciente)
+              ├── Overview          (conteos, Project Pulse, actividad reciente)
               ├── Sources           → Source Detail
               ├── Documents         → Document Detail
               ├── Notes
@@ -352,7 +356,7 @@ Confirmo el orden que propusiste en la sección 49, con una precisión: Sprint 1
 | 4 | Notes |
 | 5 | Claims, Claim Detail |
 | 6 | Relationships (crear/listar relaciones desde cualquier entidad) |
-| 7 | Research Overview + Research Health |
+| 7 | Research Overview + Project Pulse |
 | 8 | Global Search + Connections |
 
 Cada sprint termina cumpliendo el criterio de calidad de la sección 47 (loading/empty/error state, validación, responsive) antes de pasar al siguiente — no se acumula deuda de UI para "después".
