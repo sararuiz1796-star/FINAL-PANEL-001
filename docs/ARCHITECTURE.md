@@ -85,7 +85,7 @@ Convención: toda tabla usa `id uuid primary key default gen_random_uuid()`, `cr
 | title | text | not null |
 | subtitle | text | |
 | description | text | |
-| project_type | text | `CHECK IN ('journalism','book','novel','poetry_collection','essay','documentary','screenplay','photo_series','album','exhibition','artwork','design_project','academic_research','artistic_research','communication_project','personal_research','other')` — ampliado para cubrir creación artística, no solo investigación factual (ver `docs/CONCEPTUAL_REFRAMING.md` §6) |
+| project_type | text | not null (sin default) — `CHECK IN ('journalism','book','novel','poetry_collection','essay','documentary','screenplay','photo_series','album','exhibition','artwork','design_project','academic_research','artistic_research','communication_project','personal_research','other')`. Obligatorio en la creación junto con `title` (decisión UX 2, aprobada — ver `docs/HANDOFF_PRODUCT_UX.md` §3) — sin default para forzar una elección deliberada, no para que se cuele "other" por omisión. |
 | status | text | `CHECK IN ('active','paused','completed','archived')`, default `'active'` |
 | research_question | text | |
 | cover_image | text | ruta en Storage |
@@ -369,8 +369,8 @@ Cada `feature/` sigue el mismo patrón interno: `api.ts` (queries TanStack), `co
 
 ```
 Welcome / Login
-  └── Home (lista de investigaciones)
-        ├── Create Research
+  └── Home (lista de proyectos)
+        ├── Create Project
         └── Research Workspace [project_id]
               ├── Overview          (conteos, Project Pulse, actividad reciente)
               ├── Sources           → Source Detail
@@ -385,7 +385,11 @@ Global (fuera del workspace)
 
 Pantallas explícitamente fuera del MVP (quedan en el mapa conceptual, no se construyen): Timeline, Maps, Graph visual, People/Places/Topics/Interviews como módulos propios, Creation Workspace (antes "Writing workspace" — ver `docs/CONCEPTUAL_REFRAMING.md` §8), IA.
 
+**"Create Project", no "Create Research".** Renombrado por decisión UX aprobada (`docs/HANDOFF_PRODUCT_UX.md` §3, decisión 2) — PARNASO no debe imponer desde el primer contacto que todo proyecto es una "investigación"; una persona puede estar creando una novela, un álbum o una exposición igual que un reportaje.
+
 **Sobre el orden y énfasis de estos ítems.** El orden de arriba (Sources → Documents → Notes → Claims → Connections) es el default de Sprint 1, no una jerarquía fija del producto. Todo proyecto tiene acceso a las mismas seis secciones sin excepción — eso no cambia nunca por `project_type`. Lo que sí queda abierto para después es *cuál se muestra primero o con más énfasis* según el tipo de proyecto o la preferencia del creador (un proyecto de fotografía podría querer Documents antes que Claims, por ejemplo) — ver `docs/CONCEPTUAL_REFRAMING.md` §6 para la decisión completa y el punto de extensión reservado (`ui_preferences jsonb`, no implementado en Sprint 1).
+
+**Connections no es "una carpeta más".** Técnicamente en Sprint 1 es una pantalla del sidebar como cualquier otra, pero conceptualmente representa la capacidad transversal del producto ("nada está aislado") — no una entidad de contenido aislada como Sources o Notes. Cualquier pantalla de detalle (Source Detail, Document Detail, Claim Detail) debe poder crear/ver relaciones directamente desde ahí, sin obligar a pasar primero por la pantalla Connections — Connections es la vista consolidada, no el único punto de entrada al motor de relaciones.
 
 ---
 

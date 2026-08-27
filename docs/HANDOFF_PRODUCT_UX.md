@@ -1,66 +1,102 @@
 # PARNASO — Handoff de arquitectura a Producto/UX
 
-> Este documento marca el cierre de la fase de arquitectura y la apertura de la fase de diseño de producto/UX, antes de Sprint 1. No agrega ni cambia decisiones técnicas — organiza lo ya decidido en `ARCHITECTURE.md`, `RELATIONSHIPS_REVIEW.md`, `CONCEPTUAL_REFRAMING.md` y `CREATIVE_CONTEXT.md` en tres categorías: qué ya está cerrado, qué queda abierto para diseño, y qué hay que definir *antes* de que Sprint 1 empiece a construir pantallas.
+> Este documento marca el cierre de la fase de arquitectura y la apertura de la fase de diseño de producto/UX, antes de Sprint 1. Organiza las decisiones de `ARCHITECTURE.md`, `RELATIONSHIPS_REVIEW.md`, `CONCEPTUAL_REFRAMING.md`, `CREATIVE_CONTEXT.md` y `DESIGN_SYSTEM.md` en tres categorías: qué ya está cerrado, qué queda abierto para diseño, y las 9 decisiones puntuales que el usuario ya resolvió antes de Sprint 1.
 >
-> Actualizado tras incorporar la capa Core + Creative Context (`docs/CREATIVE_CONTEXT.md`): se agrega `profiles` al núcleo (8 tablas) y se precisan las decisiones 1, 3 y 4 de la sección 3 con una restricción explícita contra personalización parcial. Ninguna otra decisión de este documento cambió.
+> **Estado: las 9 decisiones de la sección 3 quedaron resueltas** (algunas aprobadas tal cual, otras con ajuste conceptual, dos deliberadamente no cerradas todavía por decisión explícita — ver detalle en cada una). Con esto, el alcance conceptual y estructural necesario para arrancar Sprint 1 se considera suficiente.
 
 ---
 
-## 1. Qué ya está cerrado (arquitectura — no requiere ni admite input de UX)
+## 1. Qué ya está cerrado (arquitectura y producto — no requiere ni admite input de UX)
 
-Estas decisiones ya están aprobadas y son responsabilidad de ingeniería, no de diseño. UX puede diseñar dando por sentado lo siguiente:
-
-| Decisión | Qué significa para quien diseña |
+| Decisión | Qué significa para quien diseña/construye |
 |---|---|
 | **Núcleo de 8 tablas**: `projects`, `project_members`, `profiles`, `sources`, `documents`, `notes`, `claims`, `relationships` | Todo lo que se diseñe en Sprint 1-8 vive dentro de estas entidades de contenido + membresía + identidad. No hay Person/Event/Place/Topic/Interview todavía — cualquier pantalla que los mencione es Phase 2, fuera de alcance. |
-| **Creator Profile (prácticas del creador) y Creative Context (qué necesita este proyecto) no tienen columna ni tabla propia** | `profiles` existe solo para nombre/avatar por ahora; ningún formulario de Sprint 1-8 pide "¿qué haces?" ni "¿qué necesita este proyecto?" — no hay dato que mostrar todavía porque no se recolecta. |
-| **`relationships` es polimórfico y universal** | Cualquier flujo de "conectar X con Y" en la UI puede asumir que el mecanismo de abajo es el mismo sin importar qué tipos de entidad se estén conectando (Source↔Claim, Note↔Document, Source↔Project, etc.). No hay que diseñar un flujo de conexión distinto por par de entidades. |
-| **`relationship_type` es una lista cerrada de 12 verbos** (`supports, contradicts, corroborates, mentions, references, related_to, derived_from, originated_from, concerns, inspires, contrasts_with, influenced_by`) | El selector de "tipo de relación" en cualquier formulario de conexión tiene estas 12 opciones, ninguna más, ninguna personalizable por ahora. |
-| **`'project'` es un destino válido de relación** | Un flujo de "conectar esta fuente/documento/nota directamente al proyecto" (sin pasar por un Claim o Note intermedio) es técnicamente posible desde Sprint 6 — UX puede diseñar ese flujo sin esperar una entidad nueva. |
-| **Disponibilidad de funciones nunca varía por `project_type`** | Todo proyecto tiene Sources, Documents, Notes, Claims, Connections y Project Pulse, sin excepción. Ninguna pantalla puede estar "bloqueada" o "no disponible" según el tipo de proyecto. |
-| **Soft delete universal, sin hard delete en MVP** | Todo flujo de "eliminar" en la UI es en realidad "archivar" — reversible, nunca destructivo, nunca pide confirmación tipo "esta acción no se puede deshacer" porque sí se puede deshacer. |
-| **Evidencia archivada permanece visible, marcada** | Un Document/Source archivado que participa en una relación sigue apareciendo en listas como "Supporting Evidence" — con un indicador visual de "archivado", nunca oculto. Esto es una restricción de diseño real: no se puede filtrar evidencia archivada por defecto de esas vistas específicas. |
-| **`sources.type` cubre 15 tipos** (persona, organización, institución, libro, artículo, sitio web, película, canción, obra, fotografía, archivo, conversación, lugar, objeto, anónimo, otro) | El formulario de creación de Source necesita un selector de tipo con estas opciones, no solo "persona/organización". |
-| **Verificación (`reliability_level`, `verification_status`, `attribution_status`) es condicional por tipo, no por proyecto** | Estos tres campos se muestran/piden en el formulario de Source según el `type` elegido (tiene sentido para persona/organización/institución/archivo; no para libro/película/canción/fotografía) — la condición vive en la UI, no en el dato. |
-| **El rol de un Document nunca es un campo fijo** | No existe (ni existirá) un selector de "¿esto es evidencia o inspiración?" al subir un documento — ese significado lo da la relación que se crea después. Ningún flujo de carga de documento debe pedir esa clasificación. |
-| **Nombres de producto ya decididos**: "Source / Reference" (no solo "Fuente"), "Project Pulse" (no "Research Health"), "Creation Workspace" (roadmap, no se construye ahora) | Naming ya resuelto — no es un punto de discusión de copy pendiente. |
-| **Storage privado por defecto, RLS por proyecto** | Ninguna pantalla necesita un toggle de "hacer público" en el MVP — no existe esa función todavía. |
+| **Creator Profile y Creative Context no tienen columna ni tabla propia** | `profiles` existe solo para nombre/avatar por ahora; ningún formulario de Sprint 1-8 pide "¿qué haces?" ni "¿qué necesita este proyecto?". Creative Context queda emergente (ver `CREATIVE_CONTEXT.md` §1), pero la arquitectura no cierra la puerta a una futura capa declarada — eso no cambia nada de lo que se construye ahora. |
+| **`relationships` es polimórfico y universal** | Cualquier flujo de "conectar X con Y" en la UI puede asumir el mismo mecanismo sin importar los tipos de entidad (Source↔Claim, Note↔Document, Source↔Project). No hay que diseñar un flujo distinto por par. |
+| **`relationship_type` es una lista cerrada de 12 verbos** (`supports, contradicts, corroborates, mentions, references, related_to, derived_from, originated_from, concerns, inspires, contrasts_with, influenced_by`) | El selector de "tipo de relación" tiene estas 12 opciones, ninguna más, ninguna personalizable por ahora. |
+| **`'project'` es un destino válido de relación** | Un flujo de "conectar esta fuente/documento/nota directamente al proyecto" es técnicamente posible desde Sprint 6. |
+| **Disponibilidad de funciones nunca varía por `project_type`** | Todo proyecto tiene Sources, Documents, Notes, Claims, Connections y Project Pulse, sin excepción. |
+| **Soft delete universal, sin hard delete en MVP** | Todo flujo de "eliminar" es en realidad "archivar" — reversible, nunca destructivo. |
+| **Evidencia archivada permanece visible, marcada** (tratamiento visual: neutro/desaturado, nunca tachado — ver `DESIGN_SYSTEM.md` §10, decisión UX 7) | Un Document/Source archivado sigue apareciendo en "Supporting Evidence", con un indicador de "ya no está activo", no de "esto no existe". |
+| **`sources.type` cubre 15 tipos** (persona, organización, institución, libro, artículo, sitio web, película, canción, obra, fotografía, archivo, conversación, lugar, objeto, anónimo, otro) — **ninguno se elimina ni se simplifica para la UI** (decisión UX 4) | El formulario de Source necesita estas 15 opciones agrupadas visualmente, nunca reducidas. |
+| **`project_type` cubre 17 valores, todos se conservan** (decisión UX 3) — y ahora es **obligatorio** (`not null`, sin default) junto con `title` en la creación (decisión UX 2) | El formulario de creación de proyecto exige elegir un `project_type` real, no permite dejarlo en blanco ni cae en "other" por omisión. |
+| **Verificación (`reliability_level`, `verification_status`, `attribution_status`) es condicional por tipo, no por proyecto** | Se muestran/piden según el `type` de Source elegido — la condición vive en la UI, no en el dato. |
+| **El rol de un Document nunca es un campo fijo** | Ningún flujo de carga de documento pide clasificar "¿esto es evidencia o inspiración?" — ese significado lo da la relación creada después. |
+| **Color de entidad y color de estado son sistemas semánticos separados** (decisión UX 6 — ver `DESIGN_SYSTEM.md` §9) | El celeste de Claim nunca puede reutilizarse para decir "este Claim necesita evidencia". Los valores hex exactos de los estados intermedios quedan abiertos (ver §2), pero el principio de separación ya no se negocia. |
+| **Project Pulse comunica posibilidad, nunca déficit ni desempeño** (decisión UX 9 — ver `CONCEPTUAL_REFRAMING.md` §7) | Prohibido: scores/porcentajes, color de error por "elementos sin conectar", lenguaje de productividad o gamificación. El copy siempre es una invitación a explorar. |
+| **Nombres de producto ya decididos**: "Create Project" (no "Create Research"), "Source / Reference", "Project Pulse", "Creation Workspace" (roadmap) | Naming resuelto — no es un punto de discusión de copy pendiente. |
+| **Connections es una capacidad transversal, no una entidad de contenido aislada** (ver `ARCHITECTURE.md` §7) | Cualquier pantalla de detalle debe poder crear/ver relaciones directamente, sin obligar a pasar primero por la pantalla Connections. |
+| **Storage privado por defecto, RLS por proyecto** | Ninguna pantalla necesita un toggle de "hacer público" — no existe esa función todavía. |
 
 ---
 
-## 2. Qué queda abierto para diseño (arquitectura lo permite, no lo resuelve)
+## 2. Qué queda abierto para diseño (deliberadamente no resuelto ahora)
 
-Estos son puntos donde la arquitectura fue deliberadamente diseñada para no bloquear una dirección de UX, pero **no tomó la decisión de diseño en sí**. Son responsabilidad de producto/UX, con estas restricciones técnicas ya puestas:
-
-1. **Jerarquía y orden de navegación por tipo de proyecto.** La arquitectura permite (vía `lib/navigation.ts` config-driven, ver `ARCHITECTURE.md` §6-7) que el orden/énfasis de Sources/Documents/Notes/Claims/Connections varíe después según `project_type` o preferencia del creador — pero no define *cuál* orden tiene sentido para cada tipo. Esto es 100% decisión de UX, informada por uso real (sección 42 del brief original), no por arquitectura.
-2. **Cómo se ve/comunica "Source / Reference" en la UI según el tipo.** La arquitectura permite que la etiqueta visible cambie (un proyecto periodístico podría decir "Fuente", uno artístico "Referencia") pero no decide si conviene hacerlo, ni cómo evitar que se sienta inconsistente entre pantallas.
-3. **Cómo se ve un Source de tipo "book/film/song/artwork" vs. uno de tipo "person".** La tabla es la misma, pero el layout de la ficha (`Source Detail`) probablemente necesita una disposición distinta — una persona muestra teléfono/email/rol; un libro probablemente quiere mostrar portada/autor/año en su lugar. Qué campos mostrar u ocultar por `type` dentro de esa ficha es diseño de UI, no de esquema (todos los campos ya existen o son genéricos — `name`, `organization`, `location`, `notes`, `relationship_to_research`, `how_found` sirven para cualquier tipo, aunque su *label* visible podría convenir que cambie).
-4. **Empty states y copy por tipo de contenido/proyecto.** Ya se decidió el tono (sección 6 de `DESIGN_SYSTEM.md`: directo, sin motivacional) y que Claims no debe sonar a tarea pendiente en un proyecto sin Claims — pero el copy exacto de cada empty state (Sources, Documents, Notes, Claims, Connections, Project Pulse) todavía no está escrito.
-5. **Qué señales muestra Project Pulse y en qué orden, cuando hay varias con datos.** La arquitectura decide que el panel es adaptativo (solo señales con conteo > 0) — no decide qué hacer cuando hay, por ejemplo, 3 señales activas a la vez: orden de prioridad visual, si se agrupan, cuántas se muestran de una vez.
-6. **El flujo real de "crear una relación".** Está resuelto que técnicamente cualquier entidad puede conectarse con cualquier otra (incluido Project) con un verbo de una lista de 12 — pero el *flujo de interacción* (¿se elige el verbo antes o después de elegir el destino? ¿se sugieren destinos por tipo de entidad de origen? ¿cómo se ve en `Connections` cuando hay decenas de relaciones?) no está diseñado.
-7. **Cómo se representa visualmente `Connections` en el MVP.** El brief y `ARCHITECTURE.md` acuerdan que no es un grafo visual todavía ("vista estructurada de relaciones") — pero esa vista estructurada en sí (¿lista agrupada por tipo? ¿por entidad de origen? ¿tabla?) no tiene diseño todavía.
-8. **Verificación condicional en el formulario de Source — el mecanismo exacto.** Arquitectura dice "se muestra según `type`" pero no diseña la interacción (¿aparecen campos nuevos dinámicamente al elegir el tipo? ¿es una sección colapsable "Verificación" que se puede ignorar? ¿cambia el copy de la sección según el tipo?).
-
----
-
-## 3. Qué hay que definir antes de que Sprint 1 empiece a construir pantallas
-
-Esto es distinto de la lista anterior: son decisiones puntuales y acotadas (no un proceso de diseño abierto) que si no se resuelven ahora, van a bloquear o vamos a tener que adivinar durante Sprint 1 (Auth + Home + Create Project + Research Workspace shell + migración inicial).
-
-1. **El orden por defecto de `lib/navigation.ts`.** Sprint 1 necesita *un* orden concreto para lanzar (aunque no sea el final ni esté contextualizado por tipo). Propuesta de arquitectura, a confirmar: Overview → Sources → Documents → Notes → Claims → Connections (el orden que ya aparece en `ARCHITECTURE.md` §7). Si UX prefiere otro orden por defecto, es un cambio de una lista de configuración, no de arquitectura — pero alguien tiene que decidirlo antes de escribir el componente. **Restricción (ver `docs/CREATIVE_CONTEXT.md` §4): este default debe ser neutral, no modelado sobre la disciplina de ningún Creator Profile particular — no "adivinar" un orden por tipo de proyecto todavía, eso se diseña completo cuando exista personalización real.**
-2. **El copy exacto de "Create Research" — qué campos son obligatorios en el formulario de creación de proyecto.** El esquema tiene `title` (obligatorio), `subtitle`, `description`, `project_type`, `research_question` (todos opcionales). Falta decidir cuáles se piden en el onboarding de 3-5 pasos que describe la sección 39 del brief original, y en qué orden. Confirmado: este formulario no incluye selección de Creator Profile/prácticas — eso es de la persona, no del proyecto, y no se construye en este ciclo (`docs/CREATIVE_CONTEXT.md` §3).
-3. **El copy y las opciones visibles del selector `project_type`** (17 valores en el `CHECK`) — cómo se agrupan/presentan en un dropdown o selector visual sin que se sienta una lista plana de 17 ítems. **Restricción**: orden fijo (alfabético o agrupado por lógica de dominio), sin reordenar según ningún perfil o disciplina — un ordenamiento "inteligente" parcial es justamente lo que hay que evitar construir a medias.
-4. **El copy y las opciones visibles del selector `sources.type`** (15 valores) — mismo problema, un poco más agudo porque mezcla categorías muy distintas (persona vs. objeto físico vs. archivo institucional). Misma restricción que el punto anterior: lista fija, sin personalización parcial.
-5. **Diseño del componente "Card de entidad" del Design System aplicado a datos reales.** `DESIGN_SYSTEM.md` ya fija color por entidad (Source=morado, Document=naranja, Note=lima, Claim=celeste — nota: Event=rosa está reservado para Phase 2, no se usa en Sprint 1-8) y la regla de números en `--text-display`/`--text-h1` — falta el layout concreto de una card de cada entidad con datos reales (qué se muestra en una card de Source en una lista: ¿nombre + type + badge de verificación? ¿nombre + snippet de notes?).
-6. **Badges de estado — mapeo exacto color↔estado.** `DESIGN_SYSTEM.md` define `--state-error` y `--state-success` como únicos tokens de estado, pero Claim tiene 6 estados (`idea, needs_evidence, partially_supported, supported, contradicted, verified`) y Source tiene 4 de verificación (`unverified, partially_verified, verified, disputed`) — con solo 2 tokens de color de estado definidos, hace falta decidir qué estados mapean a error, cuáles a success, y qué pasa con los intermedios (¿un tercer tono neutro? ¿se reutiliza un color de entidad como neutro?). Esto es una decisión de Design System pendiente, no solo de UX de producto.
-7. **Cómo se ve el badge "Archivado" sobre una card/entidad que aparece en un contexto de evidencia** (sección 1 de este documento) — no hay un token para esto en `DESIGN_SYSTEM.md` todavía.
-8. **Iconografía por `type` de Source y por `file_type` de Document.** Con 15 tipos de Source y 9 `file_type` de Document, hace falta un set de íconos de línea gruesa (regla ya fijada en `DESIGN_SYSTEM.md` §5) antes de poder construir las listas de Sprint 2-3.
-9. **Confirmar el criterio de "elemento sin conectar" para Project Pulse.** Arquitectura propone "0 filas en `relationships` para esta entidad" como la señal universal — falta confirmar si eso es lo que UX quiere mostrar primero en el Overview de Sprint 7, y con qué texto exacto.
+| Punto | Por qué sigue abierto | Bloquea Sprint 1? |
+|---|---|---|
+| **Layout de "Card de entidad"** por tipo (Source/Document/Note/Claim) | Decisión UX 5: el usuario prefiere resolverlo en UX/UI con más tiempo — una Source no debe tener necesariamente la misma jerarquía visual que una Note, ni un Claim presentarse igual que un Document con otro ícono. El modelo de datos queda cerrado; la composición visual, no. | No. |
+| **Iconografía completa por `sources.type` (15) y `documents.file_type` (9)** | Decisión UX 8: se construye progresivamente, a medida que se llega a cada entidad (Sprint 2-3), con un set provisional pero coherente con `DESIGN_SYSTEM.md` mientras tanto — no se producen 15 íconos de una sola vez ahora. | No. |
+| **Valores hex exactos de `--state-warning` y `--state-neutral`, y si `disputed` merece un matiz de "conflicto" propio** | El principio de separación entidad/estado ya está cerrado (ver §1); los tokens concretos no. Debe resolverse junto con Design System antes de construir las vistas de detalle de Claim/Source. | No para el shell; sí antes de Sprint 2 (Sources) y Sprint 5 (Claims). |
+| **Cómo se ve/comunica "Source / Reference" en la UI según el tipo** (¿la etiqueta visible cambia entre "Fuente" y "Referencia"?) | La arquitectura lo permite, no decide si conviene. | No. |
+| **Layout de `Source Detail` por tipo** (una persona muestra teléfono/rol; un libro probablemente portada/autor/año) | Todos los campos ya existen o son genéricos — el layout es diseño de UI, no de esquema. | No para el shell; sí antes de Sprint 2. |
+| **Copy exacto de cada empty state** (Sources, Documents, Notes, Claims, Connections, Project Pulse) | Tono ya decidido (`DESIGN_SYSTEM.md` §6: directo, sin motivacional); el texto exacto de cada uno no está escrito. | No para el shell. |
+| **Qué señales muestra Project Pulse y en qué orden, cuando hay varias activas a la vez** | Adaptativo ya decidido; priorización visual entre señales simultáneas, no. | No — Project Pulse es Sprint 7. |
+| **Flujo de interacción para "crear una relación"** (¿se elige el verbo antes o después del destino? ¿se sugieren destinos por tipo de origen?) | El mecanismo de abajo está cerrado (§1); la interacción, no. | No — Relationships es Sprint 6. |
+| **Representación visual de `Connections`** (¿lista agrupada por tipo? ¿por entidad de origen? ¿tabla?) | Ya se acordó que no es un grafo visual todavía — la vista estructurada en sí no tiene diseño. | No — Connections es Sprint 8. |
+| **Mecanismo exacto de verificación condicional en el formulario de Source** (¿campos aparecen dinámicamente? ¿sección colapsable?) | El criterio (se muestra según `type`) está cerrado; la interacción, no. | No para el shell; sí antes de Sprint 2. |
 
 ---
 
-## 4. Cómo usar este documento
+## 3. Las 9 decisiones — estado final resuelto
 
-- La sección 1 es la que ingeniería puede citar si una propuesta de diseño choca con algo ya decidido (ej. "no se puede ocultar la pestaña Claims para proyectos de fotografía" — eso ya está cerrado, no es negociable sin reabrir `CONCEPTUAL_REFRAMING.md`).
-- La sección 2 es responsabilidad de producto/UX para resolver con el tiempo que haga falta — no bloquea el arranque de Sprint 1 en su totalidad, pero sí bloquea partes específicas de cada sprint según se llegue a ellas (la jerarquía de navegación, por ejemplo, no bloquea Auth/Home, pero sí bloquea terminar el shell de Research Workspace).
-- La sección 3 son los ítems concretos que sí hay que cerrar antes de Sprint 1 — la lista es corta a propósito: son decisiones acotadas (un orden, un mapeo de color, un set de íconos), no procesos de diseño largos.
+Cada una, con la decisión exacta del usuario y su consecuencia directa para Sprint 1.
+
+**1. Orden del sidebar — APROBADA.**
+Overview → Sources → Documents → Notes → Claims → Connections. Es el default del MVP, no una jerarquía conceptual fija — la arquitectura sigue permitiendo contextualización futura por Creator Profile/Project Type/señales reales (`CREATIVE_CONTEXT.md`). Connections se entiende como capacidad transversal, no como una carpeta aislada (ver §1). → Implementa tal cual en `lib/navigation.ts`.
+
+**2. Creación del proyecto — APROBADA CON CAMBIO DE NOMBRE.**
+"Create Project", no "Create Research" — PARNASO no impone que todo proyecto sea una "investigación". Obligatorio: `title` + `project_type`. Opcional después: `description`, `research_question` (el campo técnico se mantiene; su expresión en UI para distintos contextos queda para después). → `project_type` pasa a `not null` en el esquema (ya aplicado en `ARCHITECTURE.md` §3.1).
+
+**3. Selector de Project Type — APROBADA CON AJUSTE.**
+Se agrupan los 17 valores existentes por familia semántica coherente — sin eliminar ni fusionar valores para simplificar, sin mezclar categorías distintas solo para llenar una familia (ej. un álbum no es "Audiovisual", es Música), sin lógica diferente por profesión todavía. → Grupos de referencia a validar con UX: Texto, Audiovisual, Visual/Diseño, Música, Investigación/Comunicación, Otro — a ajustar si alguna familia mezcla conceptos que no deberían ir juntos.
+
+**4. Selector de Source Type — APROBADA.**
+Mismo criterio: agrupar sin eliminar riqueza semántica. Es especialmente importante que Source pueda representar personas, libros, películas, canciones, fotografías, obras, objetos, lugares, conversaciones y archivos por igual — eso es parte de lo que diferencia a PARNASO de una herramienta periodística tradicional.
+
+**5. Layout de cards de entidad — NO SE CIERRA.**
+Queda abierta para UX/UI con más tiempo (ver §2). El modelo de datos permanece cerrado; la composición visual no se resuelve ahora para evitar convertir todas las entidades en "SaaS cards" idénticas. No bloquea Sprint 1.
+
+**6. Mapping de badges de estado — AJUSTADA, NO APROBADA TAL CUAL.**
+Se separa explícitamente color de entidad de color de estado (ver `DESIGN_SYSTEM.md` §9). Dirección aprobada: `verified`→success, `contradicted`→error, `disputed`→error o matiz de conflicto propio, `needs_evidence`/`partially_supported`→warning (token nuevo), `unverified`/`idea`→neutral (token nuevo). Los valores hex concretos no se inventan en este ciclo — se resuelven junto con Design System antes de construir las vistas de Claim/Source (Sprint 2 y 5). No bloquea el shell de Sprint 1.
+
+**7. Archivado — APROBADA CON PRECISIÓN.**
+Tratamiento neutro/desaturado, baja intensidad, contraste suficiente, eventual ícono de archivo — nunca tachar el contenido completo. Comunica "ya no está activo", no "esto no existe". Ver `DESIGN_SYSTEM.md` §10.
+
+**8. Iconografía — NO BLOQUEANTE.**
+Se construye progresivamente por Sprint (2-3), con un set provisional coherente con el Design System mientras tanto. No se producen los 15+9 íconos de una sola vez ahora.
+
+**9. Project Pulse / elementos sin conectar — APROBADA CON CAMBIO CONCEPTUAL.**
+Se mantiene "elementos sin conectar" como señal, pero nunca como score de productividad o "health score". Prohibido: porcentajes, rojo por ausencia de conexiones, lenguaje de productividad, gamificación. El copy comunica posibilidad ("N elementos por conectar"), no deficiencia. Ver `CONCEPTUAL_REFRAMING.md` §7 para el principio completo.
+
+---
+
+## 4. Consecuencia para Sprint 1
+
+Con estas 9 decisiones resueltas, el alcance conceptual y estructural para arrancar Sprint 1 queda cerrado. Sprint 1 construye el fundamento:
+
+- Auth
+- Profile (tabla `profiles`, sin `creative_practices` todavía)
+- Home
+- Create Project
+- Project shell / Research Workspace básico
+- Conexión real con Supabase, persistencia real de datos
+- Estructura base de navegación (`lib/navigation.ts`)
+- Design System aplicado desde el comienzo (tokens de `DESIGN_SYSTEM.md` — no los de estado intermedio, que quedan pendientes)
+
+Sprint 1 explícitamente **no** construye: perfiles especializados, onboarding contextual, navegación personalizada por profesión, Project Pulse completo, Connections visual, IA, búsqueda semántica, Creation Workspace, iconografía completa, ni la UX final de cada entidad.
+
+## 5. Cómo usar este documento
+
+- La sección 1 es la que ingeniería puede citar si una propuesta de diseño choca con algo ya decidido.
+- La sección 2 es responsabilidad de producto/UX, con los plazos de bloqueo indicados por fila (la mayoría no bloquea el shell, pero sí bloquea sprints específicos más adelante).
+- La sección 3 es el registro de las 9 decisiones puntuales ya resueltas — no vuelven a discutirse salvo que la experiencia real de uso (sección 42 del brief original) demuestre que algo necesita ajustarse.

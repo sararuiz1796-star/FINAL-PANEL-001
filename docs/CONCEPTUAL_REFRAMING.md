@@ -132,6 +132,12 @@ Adopto tu sugerencia y me inclino por **"Project Pulse"** sobre "Research Pulse"
 - Project Pulse calcula *todas* las señales disponibles (elementos sin conectar, Claims sin evidencia, preguntas abiertas, fuentes sin explorar, conexiones recientes), pero **solo muestra en la UI las señales cuyo conteo es mayor a cero** — nunca un tile fijo de "0 Claims necesitan evidencia" en un proyecto de fotografía que nunca va a tener Claims. El panel se adapta a lo que realmente existe en los datos del proyecto, no a una plantilla fija de métricas periodísticas.
 - Señal universal que sí quiero que esté siempre presente, tenga o no Claims el proyecto: **"N elementos sin conectar todavía"** (Sources/Documents/Notes/Claims con cero filas en `relationships`) — esta es la métrica que representa directamente el principio "nada está aislado" para cualquier tipo de creador, y es la que más se acerca a validar la hipótesis central del producto (sección 14).
 
+**Principio de lenguaje (aprobado, decisión UX 9 — ver `docs/HANDOFF_PRODUCT_UX.md` §3): Project Pulse es una invitación a explorar, nunca una calificación de desempeño.** Un proyecto recién creado tiene, necesariamente, todo sin conectar — eso no significa que la persona esté "usando mal" PARNASO. Esto es una restricción de copy y de tratamiento visual que aplica a *cualquier* señal de Project Pulse, no solo a "elementos sin conectar":
+- Nunca un score o porcentaje (nada de "35% completado").
+- Nunca color de error/alerta por el solo hecho de que algo esté sin conectar — el color de estado (`--state-error`) queda reservado para lo que de verdad es un problema (una contradicción entre Claims, por ejemplo), no para la ausencia normal de conexiones en un proyecto joven.
+- Nunca lenguaje de productividad o gamificación ("¡completá tu investigación!", rachas, insignias).
+- El copy comunica posibilidad ("8 elementos por conectar", "conexiones por explorar"), no déficit ("te faltan 8 conexiones").
+
 ---
 
 ## 8. Future Creation Workspace
