@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Centro de Ejecución · Video</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&amp;family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f4f1ff}
+a{color:#8858ed}a:hover{color:#1d195e}
+.v{--deep:#1d195e;--purple:#8858ed;--lav:#cec0ff;--bg:#f4f1ff;--line:#e0d9fb;--ink2:#5a5590;--ink3:#8d88b8;--orange:#ff8530;--osoft:#fff0e4;--pink:#fbd1ff;--fin:#ff8530;--mod:#8858ed;--ven:#5f62e8;--mkt:#c75fe6;--con:#e0814a;--opo:#b8418f;--ok:#1b7f52;--okbg:#e2f4ea;--low:#c2185b;--lowbg:#fde7f0}
+.v *{box-sizing:border-box}
+.v ins{text-decoration:none}
+.phone{width:300px;height:600px;border-radius:38px;background:#fff;border:10px solid #15123f;overflow:hidden;position:relative;font-size:12px}
+.top{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--bg)}
+.mark{width:26px;height:26px;border-radius:8px;background:var(--deep);display:grid;place-items:center}
+.top b{font-size:12px}.top span{font-size:9.5px;color:var(--ink3);display:block}
+.body{padding:12px;background:var(--bg);height:100%}
+.hero{background:var(--deep);color:#f1ecff;border-radius:18px;padding:16px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-50px;top:-50px;width:160px;height:160px;border-radius:50%;border:1.5px solid rgba(206,192,255,.3)}
+.hero h2{font-size:24px;margin:2px 0;line-height:1.05}.hero h2 i{font-family:Fraunces,serif;font-weight:500;color:var(--lav)}
+.eb{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--lav);font-weight:600}
+.biz{font-family:Fraunces,serif;color:var(--lav);font-size:14px}
+.ring{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;margin-top:10px}
+.ring div{width:60px;height:60px;border-radius:50%;background:var(--deep);display:grid;place-items:center;font-family:Fraunces,serif;font-size:18px;font-weight:600}
+.next{background:var(--osoft);border-radius:14px;padding:10px;margin-top:10px;display:flex;gap:8px;align-items:center}
+.next i{width:28px;height:28px;border-radius:9px;background:var(--orange);flex:none}
+.next small{font-size:8.5px;color:#a54a0b;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.areas{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+.area{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px}
+.area b{font-size:10.5px;display:block;margin-bottom:5px}
+.bar{height:4px;border-radius:2px;background:#ece7ff;overflow:hidden}.bar i{display:block;height:100%}
+.lvl{font-size:8.5px;font-weight:600;padding:2px 6px;border-radius:9px;display:inline-block;margin-top:5px}
+.l0{background:var(--lowbg);color:var(--low)}.l1{background:var(--osoft);color:#a54a0b}.l2{background:var(--okbg);color:var(--ok)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px}
+.why{background:#fff0e4;border-radius:10px;padding:9px;font-size:11px}
+.why small{display:block;font-size:8.5px;font-weight:700;color:var(--orange);letter-spacing:.06em;text-transform:uppercase}
+.chk{display:flex;gap:7px;align-items:flex-start;margin-top:8px;font-size:11px}
+.chk i{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--ink3);flex:none;margin-top:1px;position:relative}.chk i.on{background:var(--orange);border-color:var(--orange)}
+.chk.on span{text-decoration:line-through;color:var(--ink3)}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:7px}.kpi span{font-size:9px;color:var(--ink2);display:block}.kpi b{font-family:Fraunces,serif;font-size:17px}
+.kpi.hl{background:var(--orange);border-color:var(--orange);color:#fff}.kpi.hl span{color:#fff}
+.btn{display:inline-block;background:var(--purple);color:#fff;font-weight:600;font-size:11px;padding:8px 14px;border-radius:99px;margin-top:10px;position:relative}
+.badges{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.bd{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 4px;text-align:center;font-size:9.5px;font-weight:600}
+.bd i{width:28px;height:28px;border-radius:50%;background:var(--orange);display:block;margin:0 auto 4px}.bd.off i{background:#ece7ff}.bd.off{color:var(--ink3)}
+.task{display:flex;gap:7px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:6px;font-size:11px}
+.task em{margin-left:auto;font-style:normal;font-size:8.5px;font-weight:600;padding:2px 6px;border-radius:9px;background:#f1eafe;color:var(--purple)}
+.code{font-family:'Courier New',monospace;font-size:20px;letter-spacing:.12em;text-align:center;border:1.5px solid var(--purple);border-radius:12px;padding:12px;margin:12px 0;background:#fff;min-height:50px}
+</style>
+</helmet>
+<div class="v" style="width: 1080px; height: 1920px; position: relative; overflow: hidden; background: #f4f1ff; color: #1d195e; font-family: Poppins, system-ui, sans-serif;">
+
+<div style="{{label}}">Datos y nombres de ejemplo</div>
+
+<div style="{{phoneW}}">
+<div class="phone" style="transform: scale(2); transform-origin: 0 0;">
+
+<div style="{{sc1}}">
+<div class="top"><span class="mark"></span><div><b>Centro de Ejecución</b><span>Emprender Mujer · Impact Hub</span></div></div>
+<div class="body">
+<div class="hero" style="{{s1hero}}"><div class="eb">Emprender Mujer</div><h2>Centro de <i>Ejecución</i></h2><p style="color: var(--lav); font-size: 11px; margin: 8px 0 0;">Tu plan de trabajo paso a paso, armado con lo que respondiste en tu diagnóstico de entrada.</p></div>
+<div class="card" style="{{s1card}}"><b style="font-size: 15px;">Entra con tu código</b><p style="font-size: 11px; color: var(--ink2); margin: 4px 0 0;">Es tu primer nombre y cuatro números.</p>
+<div class="code">{{code}}<span style="{{caret}}"></span></div>
+<div class="btn" style="{{entrar}}">Entrar →<ins style="{{tapEntrar}}"></ins></div></div>
+</div>
+</div>
+
+<div style="{{sc2}}">
+<div class="top"><span class="mark"></span><div><b>Centro de Ejecución</b><span>Guardado</span></div></div>
+<div class="body">
+<div class="hero"><div class="eb">Tu espacio de trabajo</div><h2>Hola, <i>Luz</i></h2><div class="biz">Arepas Doña Luz</div>
+<div style="display: flex; align-items: flex-end; gap: 8px;"><div class="ring" style="{{ring}}"><div>{{ringTxt}}</div></div><span style="{{plus}}">+6 %</span></div></div>
+<div class="next" style="{{nextS}}"><i></i><div><small>Empieza por aquí · Ventas</small><div style="font-weight: 600; font-size: 11.5px;">Describe a tu cliente ideal</div></div></div>
+<div class="areas">
+<div class="area" style="{{ar.fin.style}}"><b>Finanzas</b><div class="bar"><i style="{{ar.fin.bar}}"></i></div><span class="lvl l1">En marcha</span><ins style="{{tapFin}}"></ins></div>
+<div class="area" style="{{ar.mod.style}}"><b>Modelo de negocio</b><div class="bar"><i style="{{ar.mod.bar}}"></i></div><span class="lvl l0">Por construir</span></div>
+<div class="area" style="{{ar.ven.style}}"><b>Ventas</b><div class="bar"><i style="{{ar.ven.bar}}"></i></div><span class="lvl l0">Por construir</span></div>
+<div class="area" style="{{ar.mkt.style}}"><b>Marketing</b><div class="bar"><i style="{{ar.mkt.bar}}"></i></div><span class="lvl l1">En marcha</span></div>
+<div class="area" style="{{ar.con.style}}"><b>Contenido</b><div class="bar"><i style="{{ar.con.bar}}"></i></div><span class="lvl l0">Por construir</span></div>
+<div class="area" style="{{ar.opo.style}}"><b>Oportunidades</b><div class="bar"><i style="{{ar.opo.bar}}"></i></div><span class="lvl l2">Sólida</span></div>
+</div>
+</div>
+</div>
+
+<div style="{{sc3}}">
+<div class="top"><span class="mark"></span><div><b>Finanzas</b><span style="{{pasoS}}">{{pasoTxt}}</span></div></div>
+<div class="body">
+<div class="card" style="margin-top: 0;"><b style="font-size: 13px;">Calcula cuánto te cuesta producir</b>
+<div class="why" style="{{why}}"><small>Por qué este paso</small>Contaste que tienes una idea aproximada de tus costos. Vamos a ponerla en números.</div>
+<div class="{{chk1Cls}}" style="{{chk1}}"><i class="{{box1Cls}}"><ins style="{{tapChk}}"></ins></i><span>Lista todo lo que usas para hacer tu producto</span></div>
+<div class="chk" style="{{chk2}}"><i></i><span>Averigua cuánto te cuesta cada cosa</span></div>
+<div class="kpis" style="{{kpis}}"><div class="kpi"><span>Insumos por tanda</span><b>{{insumos}}</b></div><div class="kpi"><span>Tu trabajo</span><b>{{trabajo}}</b></div><div class="kpi hl" style="{{kpiHl}}"><span>Costo por unidad</span><b>{{costo}}</b></div></div>
+<div style="position: relative;">
+<span class="btn" style="{{btnS}}">✓ Marcar como hecho<ins style="{{tapBtn}}"></ins></span>
+<div style="position: absolute; left: 70px; top: 26px; width: 0; height: 0;">
+<sc-for list="{{confetti}}" as="p" hint-placeholder-count="0"><ins style="{{p.style}}"></ins></sc-for>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div style="{{sc4}}">
+<div class="top"><span class="mark"></span><div><b>Mis tareas</b><span>Lo que tú quieras sumar</span></div></div>
+<div class="body">
+<div style="{{task1}}"><div class="task">☐ Llamar a la proveedora de empaques <em>Hoy</em></div></div>
+<div class="task"><span style="position: relative;">{{glyph2}}<ins style="{{tapTask}}"></ins></span>
+<sc-if value="{{done2}}" hint-placeholder-val="{{ false }}"><s style="color: var(--ink3);">Publicar el combo de la semana</s></sc-if>
+<sc-if value="{{notDone2}}" hint-placeholder-val="{{ true }}"><span>Publicar el combo de la semana</span></sc-if>
+</div>
+<div class="task">☐ Abrir cuenta solo del negocio <em>Finanzas</em></div>
+<b style="{{logrosT}}">Tus logros</b>
+<div class="badges" style="{{badgesW}}">
+<div class="{{bd.b1.cls}}" style="{{bd.b1.style}}"><i></i>Primer paso</div>
+<div class="{{bd.b2.cls}}" style="{{bd.b2.style}}"><i></i>Manos a la obra</div>
+<div class="{{bd.b3.cls}}" style="{{bd.b3.style}}"><i></i>Mis metas</div>
+<div class="bd off"><i></i>Cinco pasos</div>
+<div class="bd off"><i></i>Área sólida</div>
+<div class="bd off"><i></i>Ruta completa</div>
+</div>
+<b style="{{plantT}}">Plantillas</b>
+<div class="task" style="{{tpl1}}"><span style="background: #1b7f52; color: #fff; font-size: 8px; font-weight: 700; padding: 3px 5px; border-radius: 5px;">EXCEL</span> Flujo de caja semanal</div>
+<div class="task" style="{{tpl2}}"><span style="background: #2f5bd3; color: #fff; font-size: 8px; font-weight: 700; padding: 3px 5px; border-radius: 5px;">WORD</span> Guion de venta</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div style="{{cap1}}">Entras con tu <span style="color: #ff8530;">nombre y cuatro números</span></div>
+<div style="{{cap2}}">Según tu diagnóstico, <span style="color: #ff8530;">ya llevas un avance</span></div>
+<div style="{{cap3}}">Cada área tiene <span style="color: #ff8530;">su propio plan</span></div>
+<div style="{{cap4}}">Cada plan te da el <span style="color: #ff8530;">paso a paso</span> para completarlo</div>
+<div style="{{cap5}}">También puedes agregar <span style="color: #ff8530;">tus propias tareas</span></div>
+<div style="{{cap6}}">Cada paso que completas <span style="color: #ff8530;">suma a tu avance</span></div>
+
+<div style="{{openL}}">
+<div style="position: absolute; right: -260px; top: -260px; width: 820px; height: 820px; border-radius: 50%; border: 3px solid rgba(206,192,255,.3);"></div>
+<div style="{{oTop}}">Emprender Mujer · Impact Hub</div>
+<div style="{{gA}}">
+<div style="{{o1}}">Centro de</div>
+<div style="{{o2}}">Ejecución</div>
+<div style="{{o3}}">Tu plan de trabajo, paso a paso</div>
+</div>
+<div style="{{gB}}">
+<div style="font-size: 76px; line-height: 1.15; font-weight: 700; color: #f1ecff;">El Centro de <span style="font-family: Fraunces, serif; font-style: italic; font-weight: 500; color: #cec0ff;">Ejecución</span> es una plataforma para que pases <span style="color: #ff8530;">de la teoría a la acción</span>.</div>
+<div style="font-size: 40px; line-height: 1.35; font-weight: 500; color: #cec0ff;">La usas desde tu celular, como una app.</div>
+</div>
+<div style="{{gC}}">
+<div style="font-size: 76px; line-height: 1.15; font-weight: 700; color: #f1ecff;">Allí encontrarás <span style="color: #ff8530;">un plan para cada área</span> de tu negocio:</div>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px;">
+<span style="{{pill.fin}}">Finanzas</span>
+<span style="{{pill.mod}}">Modelo de negocio</span>
+<span style="{{pill.ven}}">Ventas</span>
+<span style="{{pill.mkt}}">Marketing</span>
+<span style="{{pill.con}}">Contenido</span>
+<span style="{{pill.opo}}">Oportunidades</span>
+</div>
+</div>
+</div>
+
+<div style="{{closeL}}">
+<div style="position: absolute; right: -260px; top: -260px; width: 820px; height: 820px; border-radius: 50%; border: 3px solid rgba(206,192,255,.3);"></div>
+<div style="position: absolute; left: 90px; right: 90px; top: 600px; display: flex; flex-direction: column; gap: 8px;">
+<div style="{{c1}}">De la teoría</div>
+<div style="{{c2}}">a la acción.</div>
+<div style="{{c3}}">Centro de <span style="font-family: Fraunces, serif; font-style: italic; font-weight: 500; color: #cec0ff;">Ejecución</span></div>
+<div style="{{c4}}">Emprender Mujer · Impact Hub</div>
+</div>
+<div style="{{c5}}">Nombres y cifras de ejemplo</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"reproducir":{"editor":"boolean","default":true},"segundo":{"editor":"range","min":0,"max":40,"step":0.1,"unit":"s","default":0},"$preview":{"width":1080,"height":1920}}'>
+class Component extends DCLogic {
+  componentDidMount() {
+    this.t0 = performance.now();
+    this.last = 0;
+    const loop = (now) => {
+      this.raf = requestAnimationFrame(loop);
+      if (this.props.reproducir === false) return;
+      if (now - this.last < 33) return;
+      this.last = now;
+      this.setState({ t: ((now - this.t0) / 1000) % 40 });
+    };
+    this.raf = requestAnimationFrame(loop);
+  }
+  componentWillUnmount() {
+    cancelAnimationFrame(this.raf);
+  }
+  renderVals() {
+    const play = this.props.reproducir ?? true;
+    const tReal = play ? ((this.state && this.state.t) || 0) : (this.props.segundo ?? 0);
+    let t = tReal;
+    const cl = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+    const eo = (x) => 1 - Math.pow(1 - x, 3);
+    const back = (x) => { const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+    const P = (a, d) => eo(cl((t - a) / d));
+    const L = (a, d) => cl((t - a) / d);
+    const fmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const f = (n) => n.toFixed(3);
+    const appear = (a, d, dy) => { const k = P(a, d || 0.35); return 'opacity:' + f(k) + ';transform:translateY(' + f((1 - k) * (dy == null ? 14 : dy)) + 'px)'; };
+    const pop = (a, d) => { const x = cl((t - a) / (d || 0.4)); const s = x <= 0 ? 0.5 : 0.5 + 0.5 * back(x); return 'opacity:' + f(cl(x * 2)) + ';transform:scale(' + f(s) + ')'; };
+    const tap = (a) => {
+      const d = t - a;
+      if (d < 0 || d > 0.6) return 'display:none';
+      const k = d / 0.6;
+      const s = 0.35 + eo(k) * 0.95;
+      const o = k < 0.15 ? 0.6 : 0.6 * (1 - (k - 0.15) / 0.85);
+      return 'position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;background:#ff8530;opacity:' + f(o) + ';transform:scale(' + f(s) + ');pointer-events:none;z-index:6';
+    };
+    const press = (a) => { const d = t - a; return d > 0.05 && d < 0.25 ? 0.94 : 1; };
+    const screen = (wins) => {
+      let y = null;
+      wins.forEach((w) => {
+        const a = w[0], b = w[1];
+        if ((a < 0 || t >= a) && t <= b + 0.4) {
+          const k = a < 0 ? 1 : P(a, 0.4);
+          const e = P(b, 0.4);
+          y = (1 - k) * 100 - e * 100;
+        }
+      });
+      return 'position:absolute;inset:0;display:' + (y === null ? 'none' : 'flex') + ';flex-direction:column;background:var(--bg);transform:translateY(' + f(y || 0) + '%)';
+    };
+    const cap = (a, b) => {
+      const hide = t < a || t > b;
+      const k = P(a, 0.3);
+      const e = P(b - 0.3, 0.3);
+      return 'position:absolute;left:50%;top:1470px;width:max-content;max-width:1010px;box-sizing:border-box;padding:24px 40px;border-radius:48px;background:#1d195e;color:#fff;font:600 42px/1.3 Poppins,sans-serif;text-align:center;display:' + (hide ? 'none' : 'block') + ';opacity:' + f(k * (1 - e)) + ';transform:translate(-50%,' + f((1 - k) * 30 - e * 20) + 'px)';
+    };
+    const big = (extra) => 'font-size:118px;line-height:1.02;font-weight:700;color:#f1ecff;' + extra;
+    const ital = (extra) => 'font-family:Fraunces,serif;font-style:italic;font-weight:500;font-size:132px;line-height:1.02;color:#cec0ff;' + extra;
+
+    // Apertura (0–8,6): título, qué es, para qué sirve
+    const openL = 'position:absolute;inset:0;background:#1d195e;overflow:hidden;z-index:20;display:' + (t > 8.65 ? 'none' : 'block') + ';transform:translateY(' + f(-P(8.2, 0.45) * 100) + '%)';
+    const grp = (a, b) => {
+      const k = P(a, 0.45);
+      const e = P(b, 0.3);
+      const hide = t < a || t > b + 0.3;
+      return 'position:absolute;left:90px;right:90px;top:640px;display:' + (hide ? 'none' : 'flex') + ';flex-direction:column;gap:28px;opacity:' + f(k * (1 - e)) + ';transform:translateY(' + f((1 - k) * 40 - e * 30) + 'px)';
+    };
+    const gA = grp(0, 2.4).replace('gap:28px', 'gap:8px').replace('top:640px', 'top:700px');
+    const gB = grp(2.6, 5.8);
+    const gC = grp(6.0, 99);
+    const oTop = 'position:absolute;left:90px;top:300px;font-size:30px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#cec0ff;' + appear(0.1, 0.5, 10);
+    const pillDefs = [['fin', '#ff8530', '#1d195e'], ['mod', '#8858ed', '#fff'], ['ven', '#5f62e8', '#fff'], ['mkt', '#c75fe6', '#1d195e'], ['con', '#e0814a', '#1d195e'], ['opo', '#b8418f', '#fff']];
+    const pill = {};
+    pillDefs.forEach((d, i) => {
+      pill[d[0]] = 'display:inline-block;padding:14px 28px;border-radius:99px;font-size:36px;font-weight:600;background:' + d[1] + ';color:' + d[2] + ';' + pop(6.5 + i * 0.15, 0.35);
+    });
+    const opening = {
+      openL, gA, gB, gC, oTop, pill,
+      o1: big(appear(0.15, 0.5, 40)),
+      o2: ital(appear(0.4, 0.5, 40)),
+      o3: 'font-size:46px;font-weight:500;color:#cec0ff;margin-top:36px;' + appear(0.8, 0.5, 30)
+    };
+
+    // A partir de aquí, la demostración empieza 6 s más tarde
+    t = tReal - 6;
+    const closeL = 'position:absolute;inset:0;background:#1d195e;overflow:hidden;z-index:20;display:' + (t < 29.8 ? 'none' : 'block') + ';transform:translateY(' + f((1 - P(29.8, 0.5)) * 100) + '%)';
+
+    const pk = P(2.4, 0.5);
+    const phoneW = 'position:absolute;left:240px;top:220px;width:600px;height:1200px;transform:translateY(' + f((1 - pk) * 1500) + 'px)';
+
+    // Entrar (2,4–5,4)
+    const code = 'LUZ-4821';
+    const nChars = t < 3.0 ? 0 : Math.min(8, Math.floor((t - 3.0) / 0.17) + 1);
+    const caretOn = t > 2.8 && t < 4.8 && Math.floor(t * 3) % 2 === 0;
+    const caret = 'display:inline-block;width:2px;height:20px;background:#8858ed;vertical-align:middle;margin-left:2px;opacity:' + (caretOn ? 1 : 0);
+
+    // Su espacio: punto de partida, plan por área (5,4–12,8) y regreso con avance (24,6–29,8)
+    const pct = 32 * P(6.0, 1.3) + 6 * P(25.4, 1.2);
+    const ringPulse = Math.sin(Math.PI * L(7.3, 0.8)) + Math.sin(Math.PI * L(26.6, 0.8));
+    const ring = 'background:conic-gradient(var(--orange) 0 ' + f(pct) + '%,rgba(206,192,255,.25) 0);transform:scale(' + f(1 + 0.08 * ringPulse) + ')';
+    const plus = 'background:#ff8530;color:#fff;font:700 10px Poppins;padding:3px 7px;border-radius:99px;margin-bottom:4px;' + (t < 25.4 ? 'opacity:0' : pop(25.5, 0.4));
+    const areaDefs = [['fin', 57, 'var(--fin)'], ['mod', 33, 'var(--mod)'], ['ven', 17, 'var(--ven)'], ['mkt', 40, 'var(--mkt)'], ['con', 20, 'var(--con)'], ['opo', 67, 'var(--opo)']];
+    const ar = {};
+    areaDefs.forEach((d, i) => {
+      const a = 9.4 + i * 0.2;
+      let w = d[1] * P(a + 0.1, 0.6);
+      let extra = d[0] === 'ven' ? 'border-color:var(--ven);' : '';
+      if (d[0] === 'fin') {
+        w += 14 * P(25.6, 1.0);
+        const fl = Math.sin(Math.PI * L(25.5, 1.4));
+        if (fl > 0) extra = 'border-color:#ff8530;box-shadow:0 0 0 ' + f(fl * 3) + 'px #ff8530;';
+      }
+      ar[d[0]] = { style: 'position:relative;' + extra + appear(a, 0.3, 14), bar: 'width:' + f(w) + '%;background:' + d[2] };
+    });
+
+    // Paso a paso (12,8–19,4)
+    const on1 = t >= 14.2;
+    const tau = t - 17.3;
+    const confetti = [];
+    if (tau > 0 && tau < 2.0) {
+      const rnd = (i, k) => { const x = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+      for (let i = 0; i < 28; i++) {
+        const ang = -Math.PI / 2 + (rnd(i, 1) - 0.5) * 2.4;
+        const sp = 200 + rnd(i, 2) * 260;
+        const x = Math.cos(ang) * sp * tau;
+        const y = Math.sin(ang) * sp * tau + 0.5 * 560 * tau * tau;
+        const rot = (rnd(i, 3) - 0.5) * 900 * tau;
+        const round = i % 3 === 0;
+        const w = round ? 7 : 6, h = round ? 7 : 11;
+        const o = tau > 1.4 ? 1 - (tau - 1.4) / 0.6 : 1;
+        confetti.push({ style: 'position:absolute;left:' + f(x - w / 2) + 'px;top:' + f(y - h / 2) + 'px;width:' + w + 'px;height:' + h + 'px;border-radius:' + (round ? '50%' : '2px') + ';background:' + (i % 2 ? '#ff8530' : '#8858ed') + ';opacity:' + f(o) + ';transform:rotate(' + f(rot) + 'deg);pointer-events:none' });
+      }
+    }
+    const pasoNext = t >= 17.6;
+    const pasoS = pasoNext ? 'display:block;color:#a54a0b;font-weight:600;transform-origin:0 50%;' + pop(17.6, 0.35) : '';
+
+    // Mis tareas (19,4–24,6)
+    const t1k = P(19.9, 0.4);
+    const done2 = t >= 20.8;
+    const badge = (a) => {
+      const lit = t >= a;
+      const s = lit ? 1 + 0.18 * Math.sin(Math.PI * L(a, 0.3)) : 1;
+      return { cls: lit ? 'bd' : 'bd off', style: 'transform:scale(' + f(s) + ')' };
+    };
+
+    return {
+      ...opening, closeL, phoneW,
+      c1: 'font-size:92px;line-height:1.05;font-weight:700;color:#f1ecff;' + appear(30.3, 0.5, 40),
+      c2: 'font-size:92px;line-height:1.05;font-weight:700;color:#ff8530;' + appear(30.6, 0.5, 40),
+      c3: 'font-size:64px;font-weight:700;color:#f1ecff;margin-top:90px;' + appear(31.3, 0.5, 30),
+      c4: 'font-size:38px;font-weight:500;color:#cec0ff;' + appear(31.6, 0.5, 20),
+      c5: 'position:absolute;left:0;right:0;bottom:300px;text-align:center;font-size:26px;color:#cec0ff;' + appear(32.0, 0.5, 10),
+      label: 'position:absolute;left:0;right:0;top:150px;text-align:center;font-size:26px;font-weight:500;color:#5a5590;' + appear(2.8, 0.4, 10),
+      cap1: cap(2.8, 5.4), cap2: cap(5.8, 9.2), cap3: cap(9.4, 12.8), cap4: cap(13.1, 19.4), cap5: cap(19.8, 24.6), cap6: cap(25.0, 29.8),
+      sc1: screen([[-1, 5.4]]), sc2: screen([[5.4, 12.8], [24.6, 29.8]]), sc3: screen([[12.8, 19.4]]), sc4: screen([[19.4, 24.6]]),
+      s1hero: appear(2.8, 0.35, 16), s1card: appear(2.95, 0.35, 16),
+      code: code.slice(0, nChars), caret,
+      entrar: 'display:block;text-align:center;background:var(--deep);transform:scale(' + press(5.0) + ')',
+      tapEntrar: tap(5.0),
+      ring, ringTxt: Math.round(pct) + '%', plus,
+      nextS: appear(8.6, 0.35, 10),
+      ar, tapFin: tap(12.4),
+      pasoTxt: pasoNext ? 'Paso 4 de 7' : 'Paso 3 de 7', pasoS,
+      why: 'margin-top:8px;' + appear(13.2, 0.35, 12),
+      chk1Cls: on1 ? 'chk on' : 'chk', box1Cls: on1 ? 'on' : '',
+      chk1: appear(13.5, 0.3, 10), chk2: appear(13.6, 0.3, 10), tapChk: tap(14.1),
+      kpis: appear(14.5, 0.3, 12),
+      insumos: '$' + fmt(36000 * P(14.7, 1.0)),
+      trabajo: '$' + fmt(32000 * P(14.9, 1.0)),
+      costo: '$' + fmt(3400 * P(15.7, 1.0)),
+      kpiHl: 'grid-column:1/-1;' + appear(15.5, 0.3, 10),
+      btnS: appear(16.6, 0.3, 10) + ' scale(' + press(17.2) + ')',
+      tapBtn: tap(17.2), confetti,
+      task1: 'overflow:hidden;max-height:' + f(t1k * 60) + 'px;opacity:' + f(t1k),
+      glyph2: done2 ? '☑' : '☐', done2, notDone2: !done2, tapTask: tap(20.7),
+      logrosT: 'display:block;margin-top:14px;font-size:13px;' + appear(21.2, 0.3, 10),
+      badgesW: appear(21.3, 0.3, 10),
+      bd: { b1: badge(21.6), b2: badge(22.0), b3: badge(22.4) },
+      plantT: 'display:block;margin-top:14px;font-size:13px;' + appear(22.9, 0.3, 10),
+      tpl1: appear(23.1, 0.3, 12), tpl2: appear(23.4, 0.3, 12)
+    };
+  }
+}
+</script>
+</body>
+</html>
