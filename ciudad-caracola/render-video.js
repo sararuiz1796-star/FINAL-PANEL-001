@@ -1,5 +1,5 @@
 // Exporta cada animación de animaciones.html a video 1920×1080 en ./video
-// Fondos: MP4 H.264. Transiciones con alfa: MOV ProRes 4444.
+// Fondos: MP4 H.264. Transiciones con alfa: MOV ProRes 4444 y una vista previa en MP4.
 // Uso: node ciudad-caracola/render-video.js [id …]   (sin ids exporta todo)
 const { chromium } = require('playwright');
 const { spawn } = require('child_process');
@@ -40,6 +40,13 @@ const FPS = 24;
     }
     ff.stdin.end();
     await new Promise((res, rej) => ff.on('close', c => c ? rej(new Error('ffmpeg ' + c)) : res()));
+    if (clip.alpha) {
+      // vista previa en MP4 sobre un gris neutro, para verla fuera del editor
+      const prev = path.join(outDir, clip.id + '-vista-previa.mp4');
+      await new Promise((res, rej) => spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', `color=c=0x5d6c74:s=1920x1080:r=${FPS}`, '-i', file,
+        '-filter_complex', '[0][1]overlay=shortest=1', '-c:v', 'libx264', '-crf', '16', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', prev], { stdio: 'inherit' })
+        .on('close', c => c ? rej(new Error('ffmpeg ' + c)) : res()));
+    }
     console.log(path.basename(file), frames + ' cuadros');
   }
   await browser.close();
