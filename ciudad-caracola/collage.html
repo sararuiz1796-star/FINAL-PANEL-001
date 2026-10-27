@@ -1,0 +1,409 @@
+<title>Ciudad Caracola · Crayón y papel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,700;0,800;1,300&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+/* Tablero de piezas de crayón, papel rasgado y fotocopia; cada clip es draw(ctx, t) a 1920×1080, compartido con render-video.js */
+:root{
+  --noche:#0F2A3A; --niebla:#E3EEF3; --mar:#1F7593; --salmon:#EC9C7A; --texto2:#3b4f5c;
+  --display:'Urbanist','Avenir Next','Segoe UI',sans-serif; --mano:'Caveat','Bradley Hand',cursive;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--niebla);color:var(--noche);font-family:var(--display)}
+.board{max-width:1240px;margin:0 auto;padding-block:40px 80px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:grid;gap:48px}
+.intro{display:grid;gap:12px;max-width:68ch}
+.eyebrow{font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mar)}
+h1{margin:0;font-size:clamp(36px,6vw,64px);font-weight:800;line-height:.95;letter-spacing:-.02em;text-wrap:balance}
+h1 i{font-weight:300}
+.intro p{margin:0;font-size:17px;line-height:1.55}
+.group{display:grid;gap:20px}
+.group-head{display:grid;gap:4px;border-top:1.5px solid var(--noche);padding-top:14px}
+.group-head h2{margin:0;font-size:24px;font-weight:700;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.group-head h2 small{font-family:var(--mano);font-size:24px;font-weight:600;color:var(--mar)}
+.group-head p{margin:0;font-size:15px;line-height:1.5;max-width:70ch;color:var(--texto2)}
+.clips{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,380px),1fr));gap:32px 24px}
+figure{margin:0;display:grid;gap:10px;min-width:0}
+.stage{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;border-radius:6px;overflow:hidden;cursor:pointer;background:#888}
+.stage canvas{display:block;width:100%;height:100%}
+.stage:focus-visible{outline:3px solid var(--mar);outline-offset:3px}
+.bar{position:absolute;left:0;bottom:0;height:3px;background:var(--salmon);width:0}
+.state{position:absolute;right:10px;top:10px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:rgba(15,42,58,.55);padding:4px 9px;border-radius:99px}
+.meta{display:grid;gap:4px}
+.meta h3{margin:0;font-size:18px;font-weight:700}
+.meta p{margin:0;font-size:14px;line-height:1.5;color:var(--texto2)}
+.meta .file{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--noche);overflow-wrap:anywhere}
+</style>
+
+<main class="board">
+  <header class="intro">
+    <span class="eyebrow">Cuidadoras Decididas · Microdocumental · Medellín 2026</span>
+    <h1>Crayón, papel <i>y fotocopia</i></h1>
+    <p>Un paquete para intervenir los planos del documental como en un taller: rayones de crayón animados, transiciones de papel rasgado, textura de fotocopia y una pieza de collage. Las piezas que van encima del plano tienen fondo transparente; aquí se ven sobre un plano fotocopiado de prueba. Toca cualquier clip para pausarlo.</p>
+  </header>
+  <div id="groups"></div>
+</main>
+
+<script>
+// ── utilidades ──
+const C = { noche:'#0F2A3A', sol:'#FFD23F', coral:'#E8704A', rojo:'#D93A2B', lila:'#6B4FB0', mar:'#1F7593', verde:'#9BD43A', salmon:'#EC9C7A', durazno:'#F6CDB6', papel:'#EDEBE6' };
+const PI = Math.PI, TAU = 2 * PI;
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const ease = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const out = x => 1 - Math.pow(1 - x, 3);
+const inn = x => x * x * x;
+const lerp = (a, b, x) => a + (b - a) * x;
+const H = n => { const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function alpha(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${n >> 8 & 255},${n & 255},${a})`; }
+let BOIL = 0, FRAME = 0;
+const wob = (i, amp, s = 0) => { const k = s * 7.3 + BOIL * 2.9; return amp * (Math.sin(i * .17 + k) + .6 * Math.sin(i * .43 + k * 1.7) + .3 * Math.sin(i * 1.3 + k * .6)) / 1.9; };
+const slice = (pts, p) => pts.slice(0, Math.max(0, Math.ceil(pts.length * clamp(p))));
+const linePts = (x0, y0, x1, y1, step = 14) => { const n = Math.max(2, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / step)); return Array.from({ length: n + 1 }, (_, i) => [lerp(x0, x1, i / n), lerp(y0, y1, i / n)]); };
+
+// ── texturas (una vez) ──
+const mk = (w, h, fn) => { const c = document.createElement('canvas'); c.width = w; c.height = h; fn(c.getContext('2d'), w, h); return c; };
+// huecos de la cera: dónde el crayón no toca el papel
+const WAX = mk(1024, 1024, (g, w, h) => {
+  const im = g.createImageData(w, h), R = rng(11);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4, n = R() * .7 + .3 * (Math.sin(y * .9 + Math.sin(x * .05) * 3) * .5 + .5);
+    im.data[i + 3] = n > .76 ? 255 : n > .66 ? 100 : 0;
+  }
+  g.putImageData(im, 0, 0);
+});
+const GRAIN = mk(960, 540, (g, w, h) => {
+  const im = g.createImageData(w, h), R = rng(3);
+  for (let i = 0; i < im.data.length; i += 4) { const v = 150 + R() * 105; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255; }
+  g.putImageData(im, 0, 0);
+});
+// "foto" fotocopiada de prueba: manchas suaves en trama de puntos, como una imagen impresa en papel térmico
+function smooth(x, y, s) { let v = 0, a = 1, f = 1; for (let o = 0; o < 4; o++) { v += a * Math.sin(x * .004 * f + s + o * 1.7) * Math.cos(y * .005 * f - s * .7 + o * 2.3); a *= .5; f *= 2.1; } return v; }
+const HALFTONE = mk(1920, 1080, (g, w, h) => {
+  g.fillStyle = C.papel; g.fillRect(0, 0, w, h); g.fillStyle = '#1b1b1b';
+  const cell = 9;
+  for (let y = 0; y < h; y += cell) for (let x = 0; x < w; x += cell) {
+    const ox = (y / cell) % 2 ? cell / 2 : 0;
+    const d = clamp(.45 + .38 * smooth(x, y, 1.3) + .1 * Math.sin(x * .02 + y * .013));
+    const r = cell * .62 * Math.sqrt(d);
+    if (r > .5) { g.beginPath(); g.arc(x + ox, y, r, 0, TAU); g.fill(); }
+  }
+});
+// papel térmico: blanco gris con bandas del cabezal, rayas y motas de tóner
+function thermal(seed) {
+  return mk(1920, 1080, (g, w, h) => {
+    const R = rng(seed);
+    g.fillStyle = '#E9E8E3'; g.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y += 3) { g.fillStyle = `rgba(40,40,40,${R() * .05})`; g.fillRect(0, y, w, 2); }
+    for (let k = 0; k < 6; k++) { const x = R() * w; g.fillStyle = `rgba(30,30,30,${.03 + R() * .06})`; g.fillRect(x, 0, 1 + R() * 3, h); }
+    for (let k = 0; k < 900; k++) { g.fillStyle = `rgba(20,20,20,${.2 + R() * .5})`; g.beginPath(); g.arc(R() * w, R() * h, R() * 1.8 + .3, 0, TAU); g.fill(); }
+    g.globalCompositeOperation = 'multiply'; g.globalAlpha = .35; g.drawImage(GRAIN, 0, 0, w, h);
+  });
+}
+const THERMAL = Array.from({ length: 6 }, (_, i) => thermal(20 + i));
+
+// ── crayón: el trazo se pinta en una capa aparte y se le quitan los huecos de la cera ──
+const LAYER = mk(1920, 1080, () => {}), LG = LAYER.getContext('2d');
+function crayon(ctx, strokes, col, { w = 16, a = .95 } = {}) {
+  LG.setTransform(1, 0, 0, 1, 0, 0); LG.globalCompositeOperation = 'source-over'; LG.clearRect(0, 0, 1920, 1080);
+  LG.lineCap = 'round'; LG.lineJoin = 'round'; LG.strokeStyle = col;
+  strokes.forEach((pts, si) => {
+    if (pts.length < 2) return;
+    for (let p = 0; p < 3; p++) {
+      LG.beginPath();
+      pts.forEach(([x, y], i) => { const X = x + wob(i, w * .18, si * 3 + p * 5) , Y = y + wob(i + 400, w * .18, si * 3 + p * 5); i ? LG.lineTo(X, Y) : LG.moveTo(X, Y); });
+      LG.lineWidth = w * [1, .7, .5][p]; LG.globalAlpha = [.9, .8, .9][p]; LG.stroke();
+    }
+  });
+  LG.globalAlpha = 1; LG.globalCompositeOperation = 'destination-out';
+  const ox = (BOIL * 337) % 1024, oy = (BOIL * 191) % 1024;
+  for (let y = -oy; y < 1080; y += 1024) for (let x = -ox; x < 1920; x += 1024) LG.drawImage(WAX, x, y);
+  ctx.save(); ctx.setTransform(ctx.__s || 1, 0, 0, ctx.__s || 1, 0, 0); ctx.globalAlpha = a; ctx.drawImage(LAYER, 0, 0, 1920, 1080); ctx.restore();
+}
+// fondo de prueba para ver las piezas transparentes
+function testShot(ctx) { ctx.drawImage(HALFTONE, 0, 0); }
+
+// formas de crayón
+const ellipsePts = (cx, cy, rx, ry, a0, turns, s = 0) => { const n = Math.ceil(90 * turns); return Array.from({ length: n + 1 }, (_, i) => { const a = a0 + TAU * turns * i / n, k = 1 + .05 * Math.sin(a * 2 + s) - .03 * i / n; return [cx + rx * k * Math.cos(a), cy + ry * k * Math.sin(a)]; }); };
+function zigzag(cx, cy, rx, ry, ang, gap) {
+  const pts = [], ca = Math.cos(ang), sa = Math.sin(ang); let dir = 1;
+  for (let v = -ry; v <= ry; v += gap) {
+    const half = rx * Math.sqrt(Math.max(0, 1 - (v / ry) ** 2));
+    const a = [-half * dir, v], b = [half * dir, v + gap * .5]; dir *= -1;
+    for (const [x, y] of [a, b]) pts.push([cx + x * ca - y * sa, cy + x * sa + y * ca]);
+  }
+  const dense = []; for (let i = 0; i < pts.length - 1; i++) dense.push(...linePts(...pts[i], ...pts[i + 1], 18).slice(i ? 1 : 0));
+  return dense;
+}
+const spiralPts = (cx, cy, b, t0, t1) => { const n = Math.ceil((t1 - t0) * 22); return Array.from({ length: n + 1 }, (_, i) => { const th = t0 + (t1 - t0) * i / n; return [cx + b * th * Math.cos(th), cy + b * th * Math.sin(th)]; }); };
+
+// ── papel rasgado ──
+function tear(x0, y0, x1, y1, seed, rough = 22, depth = 7) {
+  let pts = [[x0, y0], [x1, y1]]; const R = rng(seed);
+  for (let d = 0, r = rough; d < depth; d++, r *= .55) {
+    const np = [pts[0]];
+    for (let i = 0; i < pts.length - 1; i++) { const [ax, ay] = pts[i], [bx, by] = pts[i + 1], dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy) || 1, o = (R() - .5) * 2 * r; np.push([(ax + bx) / 2 - dy / L * o, (ay + by) / 2 + dx / L * o], pts[i + 1]); }
+    pts = np;
+  }
+  return pts;
+}
+// pinta una tira con borde rasgado arriba y abajo; fill es un color o un canvas
+function strip(ctx, top, bot, fill, { dx = 0, dy = 0, rot = 0, cx = 960, cy = 540, fiber = true } = {}) {
+  ctx.save(); ctx.translate(cx + dx, cy + dy); ctx.rotate(rot); ctx.translate(-cx, -cy);
+  const path = () => { ctx.beginPath(); top.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); [...bot].reverse().forEach(([x, y]) => ctx.lineTo(x, y)); ctx.closePath(); };
+  path(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 6; ctx.fillStyle = '#ddd'; ctx.fill(); ctx.shadowColor = 'transparent';
+  path(); ctx.save(); ctx.clip();
+  if (typeof fill === 'string') { ctx.fillStyle = fill; ctx.fillRect(-400, -400, 2720, 1880); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = .35; ctx.drawImage(GRAIN, 0, 0, 1920, 1080); }
+  else ctx.drawImage(fill, 0, 0);
+  ctx.restore();
+  if (fiber) for (const edge of [top, bot]) {
+    ctx.beginPath(); edge.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+    ctx.lineWidth = 7; ctx.strokeStyle = 'rgba(250,248,242,.85)'; ctx.stroke();
+    ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ── clips ──
+const GROUPS = [];
+const crayonClip = (id, title, text, dur, build) => ({ id, title, text, dur, alpha: true, preview: testShot, draw: build });
+
+GROUPS.push({
+  h: 'Crayón', small: 'para rayar encima de los planos', p: 'Rayones animados, con la textura de la cera y el temblor de un dibujo hecho cuadro a cuadro. Se dibujan en 1 a 2 s y luego quedan vivos. Se ponen encima del plano para señalar, encerrar o rellenar, como en el video de Imprimindo memórias.',
+  clips: [
+    crayonClip('20-crayon-encerrar', 'Encerrar', 'Un óvalo rojo que se cierra dos veces sobre algo: una cara, unas manos, un objeto.', 4, (ctx, t) => {
+      crayon(ctx, [slice(ellipsePts(960, 540, 330, 220, -2.2, 1.9, 1), ease(seg(t, .2, 1.6)))], C.rojo, { w: 18 });
+    }),
+    crayonClip('21-crayon-rellenar', 'Rellenar', 'Un garabato amarillo que rellena una zona, como la camiseta pintada de la referencia.', 4, (ctx, t) => {
+      crayon(ctx, [slice(zigzag(960, 560, 300, 260, -.45, 30), seg(t, .2, 2.2))], C.sol, { w: 34, a: .9 });
+    }),
+    crayonClip('22-crayon-subrayar', 'Subrayar', 'Dos líneas coral que subrayan, para debajo de alguien que habla o de un gesto.', 3, (ctx, t) => {
+      const l1 = Array.from({ length: 50 }, (_, i) => [560 + i * 16, 820 + 10 * Math.sin(i * .35) - i * .6]);
+      const l2 = Array.from({ length: 44 }, (_, i) => [600 + i * 16, 862 + 8 * Math.sin(i * .4 + 1) - i * .4]);
+      crayon(ctx, [slice(l1, out(seg(t, .15, .8))), slice(l2, out(seg(t, .7, 1.3)))], C.coral, { w: 20 });
+    }),
+    crayonClip('23-crayon-flecha', 'Señalar', 'Una flecha azul que llega desde el borde y señala el centro del cuadro.', 3, (ctx, t) => {
+      const curve = Array.from({ length: 40 }, (_, i) => { const u = i / 39; return [lerp(1480, 1070, u) + 70 * Math.sin(u * PI), lerp(210, 480, u) - 50 * Math.sin(u * PI)]; });
+      const [ex, ey] = curve[39], [px, py] = curve[34], ang = Math.atan2(ey - py, ex - px);
+      const wing = s => [ex - 95 * Math.cos(ang + s), ey - 95 * Math.sin(ang + s)];
+      const head = [...linePts(...wing(.5), ex, ey, 10), ...linePts(ex, ey, ...wing(-.5), 10).slice(1)];
+      crayon(ctx, [slice(curve, out(seg(t, .1, .9))), slice(head, out(seg(t, .85, 1.25)))], C.mar, { w: 18 });
+    }),
+    crayonClip('24-crayon-destellos', 'Destellos', 'Rayitas que brotan alrededor de algo, como las marcas rojas de la referencia. Sirven para un momento de alegría o de logro.', 3, (ctx, t) => {
+      const strokes = [];
+      for (let k = 0; k < 7; k++) {
+        const a = -PI / 2 + (k - 3) * .42, p = out(seg(t, .1 + k * .08, .6 + k * .08));
+        strokes.push(slice(linePts(960 + 250 * Math.cos(a), 540 + 250 * Math.sin(a), 960 + 400 * Math.cos(a), 540 + 400 * Math.sin(a), 12), p));
+      }
+      crayon(ctx, strokes, C.rojo, { w: 16 });
+    }),
+    crayonClip('25-crayon-caracola', 'Caracola', 'La espiral del documental dibujada en crayón lila. Sirve como firma visual sobre un plano del barrio o del taller.', 4, (ctx, t) => {
+      crayon(ctx, [slice(spiralPts(960, 540, 17, .6, 6.3 * PI), ease(seg(t, .2, 2.4)))], C.lila, { w: 18 });
+    }),
+  ]
+});
+
+GROUPS.push({
+  h: 'Papel rasgado', small: 'transiciones', p: 'Tiras de papel fotocopiado y de color que entran, tapan el cuadro y salen. El punto para cortar al plano siguiente es cerca de 1,2 s.',
+  clips: [
+    { id: '30-rasgado-franjas', title: 'Franjas', text: 'Seis tiras rasgadas entran desde lados alternos, como en la referencia de los ojos, y se van por el lado contrario.', dur: 2.5, alpha: true, preview: testShot, draw(ctx, t) {
+      const fills = [THERMAL[0], C.salmon, HALFTONE, C.sol, THERMAL[1], C.mar];
+      for (let k = 0; k < 6; k++) {
+        const y0 = -40 + k * 190, y1 = y0 + 250, dir = k % 2 ? 1 : -1;
+        const inP = out(seg(t, k * .07, .75 + k * .07)), outP = inn(seg(t, 1.35 + k * .06, 2.2 + k * .06));
+        const dx = dir * (1 - inP) * 2200 - dir * outP * 2200;
+        if (Math.abs(dx) > 2150) continue;
+        strip(ctx, tear(-60, y0, 1980, y0 + 14 * (k % 3 - 1), 100 + k, 26), tear(-60, y1, 1980, y1 - 10, 200 + k, 26), fills[k], { dx, rot: (k % 2 ? .012 : -.01) * (1 - inP + outP) + (k % 3 - 1) * .006 });
+      }
+    } },
+    { id: '31-rasgado-hoja', title: 'Hoja que se rompe', text: 'Una hoja fotocopiada sube y tapa el cuadro; luego se rasga en dos y cada mitad se va hacia un lado.', dur: 2.5, alpha: true, preview: testShot, draw(ctx, t) {
+      const up = out(seg(t, 0, .6)), open = inn(seg(t, 1.3, 2.3)), cut = tear(980, -80, 940, 1160, 77, 40);
+      const L = [[-80, -80], ...cut, [-80, 1160]], Rr = [[2000, -80], ...cut, [2000, 1160]];
+      const dy = (1 - up) * 1250;
+      const half = (poly, dx, rot, fill) => {
+        ctx.save(); ctx.translate(960 + dx, 540 + dy); ctx.rotate(rot); ctx.translate(-960, -540);
+        ctx.beginPath(); poly.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath();
+        ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 24; ctx.fillStyle = '#ddd'; ctx.fill(); ctx.shadowColor = 'transparent';
+        ctx.save(); ctx.clip(); ctx.drawImage(fill, 0, 0); ctx.restore();
+        if (open > 0) { ctx.beginPath(); cut.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.lineWidth = 9; ctx.strokeStyle = 'rgba(250,248,242,.9)'; ctx.stroke(); }
+        ctx.restore();
+      };
+      half(L, -open * 1300, -open * .12, THERMAL[2]);
+      half(Rr, open * 1300, open * .1, THERMAL[2]);
+    } },
+  ]
+});
+
+GROUPS.push({
+  h: 'Fotocopia', small: 'textura para todo el documental', p: 'Polvo, rayas del cabezal y motas de tóner que cambian 12 veces por segundo. Se pone encima de cualquier plano en modo de fusión Multiplicar y le da textura de papel térmico sin tocar la imagen.',
+  clips: [
+    { id: '40-textura-fotocopia', title: 'Papel térmico', text: 'Textura en bucle de 8 s sobre blanco. En el editor: modo Multiplicar, al 40–80 %.', dur: 8, alpha: false, draw(ctx, t) {
+      ctx.drawImage(THERMAL[FRAME % 6], (H(FRAME) - .5) * 30, (H(FRAME + 7) - .5) * 20, 1980, 1110);
+      const R = rng(FRAME * 13 + 1);
+      for (let k = 0; k < 4; k++) { ctx.fillStyle = `rgba(20,20,20,${R() * .35})`; ctx.beginPath(); ctx.ellipse(R() * 1920, R() * 1080, 3 + R() * 22, 1 + R() * 4, R() * PI, 0, TAU); ctx.fill(); }
+      if (R() > .6) { ctx.strokeStyle = 'rgba(20,20,20,.5)'; ctx.lineWidth = 1.4; ctx.beginPath(); const x = R() * 1920, y = R() * 1080; ctx.moveTo(x, y); ctx.bezierCurveTo(x + 40, y - 30, x + 60, y + 40, x + 110, y + 10); ctx.stroke(); }
+      const v = ctx.createRadialGradient(960, 540, 520, 960, 540, 1200); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.35)'); ctx.fillStyle = v; ctx.fillRect(0, 0, 1920, 1080);
+      ctx.fillStyle = `rgba(255,255,255,${.04 * H(FRAME * 3)})`; ctx.fillRect(0, 0, 1920, 1080);
+    } },
+  ]
+});
+
+const PIECES = Array.from({ length: 18 }, (_, i) => {
+  const R = rng(500 + i), th = 1.4 * PI + i * .62, r = 20 * th;
+  return { x: 960 + r * Math.cos(th), y: 540 + r * Math.sin(th), w: 120 + R() * 130, h: 90 + R() * 90, rot: (R() - .5) * .9, fill: [C.salmon, HALFTONE, C.sol, THERMAL[3], C.lila, C.mar, C.coral, HALFTONE, C.verde][i % 9], seed: 700 + i, t: .3 + i * .28 };
+});
+GROUPS.push({
+  h: 'Collage', small: 'pieza completa', p: 'Una pieza de fondo que no necesita material grabado.',
+  clips: [
+    { id: '50-collage-caracola-de-papel', title: 'Caracola de papel', text: 'Sobre papel térmico caen, uno por uno, pedazos rasgados de papel de colores y fotocopias, siguiendo la espiral desde adentro. Al final se dibuja encima la caracola en crayón y salen destellos. Sirve para la apertura o el cierre.', dur: 10, alpha: false, draw(ctx, t) {
+      ctx.drawImage(THERMAL[FRAME % 6], 0, 0);
+      PIECES.forEach(pc => {
+        const p = seg(t, pc.t, pc.t + .25); if (!p) return;
+        const s = lerp(1.25, 1, out(p)), hw = pc.w / 2, hh = pc.h / 2;
+        const top = tear(pc.x - hw, pc.y - hh, pc.x + hw, pc.y - hh, pc.seed, 10, 5), bot = tear(pc.x - hw, pc.y + hh, pc.x + hw, pc.y + hh, pc.seed + 1, 10, 5);
+        ctx.save(); ctx.translate(pc.x, pc.y); ctx.scale(s, s); ctx.translate(-pc.x, -pc.y);
+        strip(ctx, top, bot, pc.fill, { rot: pc.rot + wob(pc.seed, .004), cx: pc.x, cy: pc.y });
+        ctx.restore();
+      });
+      crayon(ctx, [slice(spiralPts(960, 540, 20, .6, 6.2 * PI), ease(seg(t, 5.6, 8.4)))], C.noche, { w: 15 });
+      const sp = [];
+      for (let k = 0; k < 6; k++) { const a = -PI / 2 + (k - 2.5) * .45, p = out(seg(t, 8.4 + k * .06, 8.9 + k * .06)); sp.push(slice(linePts(1560 + 90 * Math.cos(a), 300 + 90 * Math.sin(a), 1560 + 170 * Math.cos(a), 300 + 170 * Math.sin(a), 12), p)); }
+      crayon(ctx, sp, C.rojo, { w: 14 });
+      ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = .18; ctx.drawImage(GRAIN, 0, 0, 1920, 1080); ctx.restore();
+    } },
+  ]
+});
+
+// ── apertura tipográfica: aliados, "presentan" y título ──
+const FONT = { name: "200 64px Urbanist, 'Avenir Next', sans-serif", small: "italic 300 46px Urbanist, 'Avenir Next', sans-serif", bold: "800 190px Urbanist, 'Avenir Next', sans-serif", ital: "italic 300 190px Urbanist, 'Avenir Next', sans-serif" };
+function cineText(ctx, txt, font, x, y, { a = 1, blur = 0, track = 0, scale = 1, col = '#F2EDE6', align = 'center' } = {}) {
+  if (a <= 0) return;
+  ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
+  ctx.font = font; ctx.textAlign = align; ctx.textBaseline = 'middle';
+  if ('letterSpacing' in ctx) ctx.letterSpacing = track + 'px';
+  ctx.filter = blur > .1 ? `blur(${blur}px)` : 'none';
+  ctx.globalAlpha = a; ctx.fillStyle = col;
+  // el tracking suma espacio al final; se compensa para que quede centrado
+  ctx.fillText(txt, align === 'center' ? track / 2 : 0, 0);
+  ctx.restore();
+}
+// aparece desde desenfocado, respira y se va desenfocándose
+function beat(t, t0, t1, fin = .9, fout = .8) {
+  const i = seg(t, t0, t0 + fin), o = seg(t, t1 - fout, t1), k = seg(t, t0, t1);
+  return { a: out(i) * (1 - ease(o)), blur: 14 * (1 - out(i)) + 10 * ease(o), k };
+}
+const NAMES = [['IMPACT HUB', 1.0, 5.0], ['SECRETARÍA DE LAS MUJERES', 5.6, 9.8], ['SURA ASSET MANAGEMENT', 10.4, 14.6]];
+GROUPS.unshift({
+  h: 'Apertura', small: 'tipográfica', p: 'Fundido desde negro. Los nombres de los aliados pasan uno por uno, se desenfocan al salir y dan paso a «presentan» y al título. Va con grano de cine y una luz cálida que se mueve despacio. Se mueve a 24 cuadros por segundo, sin el temblor del dibujo.',
+  clips: [
+    { id: '01-apertura-tipografica', title: 'Aliados presentan Ciudad Caracola', text: 'Impact Hub, Secretaría de las Mujeres y SURA Asset Management aparecen uno tras otro. Después vienen «presentan» y Ciudad Caracola, mientras una espiral se dibuja detrás del título. Dura 27 s y termina en fundido a negro.', dur: 27, smooth: true, alpha: false, draw(ctx, t) {
+      ctx.fillStyle = '#0A0A0B'; ctx.fillRect(0, 0, 1920, 1080);
+      // luz cálida que deriva
+      const lx = 960 + 380 * Math.sin(t * .11), ly = 540 + 160 * Math.cos(t * .08);
+      const g = ctx.createRadialGradient(lx, ly, 0, lx, ly, 900);
+      const glow = .1 + .05 * Math.sin(t * .7) + .1 * seg(t, 18, 21);
+      g.addColorStop(0, alpha(C.salmon, glow)); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 1920, 1080);
+      NAMES.forEach(([n, t0, t1]) => {
+        const b = beat(t, t0, t1);
+        cineText(ctx, n, FONT.name, 960, 540, { a: b.a * .95, blur: b.blur, track: lerp(18, 30, b.k), scale: lerp(1, 1.035, b.k) });
+      });
+      const pr = beat(t, 15.2, 18.4, 1, .9);
+      cineText(ctx, 'presentan', FONT.small, 960, 540, { a: pr.a * .85, blur: pr.blur, track: lerp(4, 10, pr.k), col: C.durazno });
+      // título
+      const T0 = 19.0, ti = seg(t, T0, T0 + 1.6), ti2 = seg(t, T0 + .7, T0 + 2.4), k = seg(t, T0, 27), fade = seg(t, 25.6, 27);
+      const sp = ease(seg(t, T0 + .4, 24.5));
+      if (sp > 0) {
+        ctx.save(); ctx.globalAlpha = .35 * (1 - fade); ctx.strokeStyle = C.salmon; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+        const pts = spiralPts(1180, 540, 15, .6, .6 + (6.3 * PI - .6) * sp); ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.restore();
+      }
+      const sc = lerp(1, 1.04, k);
+      ctx.save(); ctx.translate(960, 540); ctx.scale(sc, sc); ctx.translate(-960, -540);
+      cineText(ctx, 'Ciudad', FONT.bold, 960 - 30 * (1 - out(ti)), 450, { a: out(ti) * (1 - fade), blur: 16 * (1 - out(ti)), track: -4 });
+      cineText(ctx, 'Caracola', FONT.ital, 960 + 40 * (1 - out(ti2)), 640, { a: out(ti2) * (1 - fade), blur: 16 * (1 - out(ti2)), track: -2, col: C.salmon });
+      ctx.restore();
+      // grano de cine y viñeta
+      ctx.save(); ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = .35;
+      ctx.drawImage(GRAIN, -((FRAME * 137) % 400), -((FRAME * 89) % 300), 2400, 1440); ctx.restore();
+      const v = ctx.createRadialGradient(960, 540, 400, 960, 540, 1150); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.6)'); ctx.fillStyle = v; ctx.fillRect(0, 0, 1920, 1080);
+      // parpadeo leve de proyección
+      ctx.fillStyle = `rgba(0,0,0,${.03 * H(FRAME)})`; ctx.fillRect(0, 0, 1920, 1080);
+    } },
+  ]
+});
+
+GROUPS[0].clips.push({ id: '02-frase-el-cuidado-sostiene-la-vida', title: 'El cuidado sostiene la vida', text: 'La frase aparece por partes: «El cuidado», luego «sostiene» y al final «la vida», en salmón. Debajo se dibuja una línea que la sostiene. Sirve para abrir el primer movimiento o para cerrar. Dura 12 s y termina en fundido a negro.', dur: 12, smooth: true, alpha: false, draw(ctx, t) {
+  ctx.fillStyle = '#0A0A0B'; ctx.fillRect(0, 0, 1920, 1080);
+  const lx = 960 + 300 * Math.sin(t * .13), g = ctx.createRadialGradient(lx, 560, 0, lx, 560, 850);
+  g.addColorStop(0, alpha(C.salmon, .1 + .04 * Math.sin(t * .8))); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, 1920, 1080);
+  const fade = seg(t, 10.6, 12), k = seg(t, 0, 12), sc = lerp(1, 1.05, k);
+  ctx.save(); ctx.translate(960, 540); ctx.scale(sc, sc); ctx.translate(-960, -540);
+  const word = (txt, font, x, y, t0, col, align) => { const i = seg(t, t0, t0 + 1.4); cineText(ctx, txt, font, x + (align === 'left' ? 24 : 0) * (1 - out(i)), y, { a: out(i) * (1 - fade), blur: 14 * (1 - out(i)), track: -2, col, align }); };
+  const big = "300 150px Urbanist, 'Avenir Next', sans-serif", bigB = "800 150px Urbanist, 'Avenir Next', sans-serif", bigI = "italic 300 150px Urbanist, 'Avenir Next', sans-serif";
+  word('El cuidado', bigB, 960, 430, 1.0, '#F2EDE6', 'center');
+  word('sostiene', big, 450, 620, 2.8, '#F2EDE6', 'left');
+  word('la vida', bigI, 1080, 620, 4.2, C.salmon, 'left');
+  const ln = ease(seg(t, 5.4, 7.6));
+  if (ln > 0) { ctx.globalAlpha = .8 * (1 - fade); ctx.strokeStyle = C.salmon; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(960 - 520 * ln, 740); ctx.lineTo(960 + 520 * ln, 740); ctx.stroke(); ctx.globalAlpha = 1; }
+  ctx.restore();
+  ctx.save(); ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = .35; ctx.drawImage(GRAIN, -((FRAME * 137) % 400), -((FRAME * 89) % 300), 2400, 1440); ctx.restore();
+  const v = ctx.createRadialGradient(960, 540, 400, 960, 540, 1150); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.6)'); ctx.fillStyle = v; ctx.fillRect(0, 0, 1920, 1080);
+  ctx.fillStyle = `rgba(0,0,0,${.03 * H(FRAME)})`; ctx.fillRect(0, 0, 1920, 1080);
+} });
+
+const CLIPS = GROUPS.flatMap(g => g.clips);
+
+// ── render de un cuadro; el dibujo va "en dos" (12 dibujos por segundo) ──
+function renderFrame(canvas, clip, t, scale = 1, withPreview = false) {
+  const tc = Math.min(t, clip.dur - 1e-3);
+  const f = Math.floor(tc * (clip.smooth ? 24 : 12));
+  BOIL = f % 3; FRAME = f;
+  const ctx = canvas.getContext('2d'); ctx.__s = scale;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  if (withPreview && clip.preview) clip.preview(ctx);
+  clip.draw(ctx, clip.smooth ? tc : f / 12);
+  return f;
+}
+window.CLIPS = CLIPS; window.renderFrame = renderFrame;
+
+// ── tablero ──
+if (location.hash !== '#render') {
+  const root = document.getElementById('groups');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const players = [];
+  GROUPS.forEach(g => {
+    const sec = document.createElement('section'); sec.className = 'group';
+    sec.innerHTML = `<div class="group-head"><h2>${g.h} <small>${g.small}</small></h2><p>${g.p}</p></div><div class="clips"></div>`;
+    root.appendChild(sec);
+    g.clips.forEach(clip => {
+      const file = clip.alpha ? `${clip.id}.mov · ${clip.id}-vista-previa.mp4` : `${clip.id}.mp4`;
+      const fig = document.createElement('figure');
+      fig.innerHTML = `<div class="stage" tabindex="0" role="button" aria-label="Pausar o reproducir ${clip.title}"><canvas width="960" height="540"></canvas><div class="bar"></div><span class="state" hidden>Pausa</span></div>
+        <div class="meta"><h3>${clip.title}</h3><p>${clip.text}</p><span class="file">${file} · ${clip.dur} s</span></div>`;
+      sec.querySelector('.clips').appendChild(fig);
+      const st = fig.querySelector('.stage'), cv = fig.querySelector('canvas'), bar = fig.querySelector('.bar'), lbl = fig.querySelector('.state');
+      const p = { clip, cv, bar, t: 0, f: -1, playing: !reduce, visible: true };
+      const toggle = () => { p.playing = !p.playing; lbl.hidden = p.playing; };
+      st.addEventListener('click', toggle);
+      st.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } });
+      if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => p.visible = e.isIntersecting).observe(st);
+      if (!p.playing) lbl.hidden = false;
+      renderFrame(cv, clip, clip.dur * (clip.alpha && clip.dur < 3 ? .45 : .8), .5, true);
+      players.push(p);
+    });
+  });
+  let last = performance.now();
+  const loop = now => {
+    const dt = Math.min(.1, (now - last) / 1000); last = now;
+    for (const p of players) {
+      if (!p.playing || !p.visible) continue;
+      p.t = (p.t + dt) % (p.clip.dur + .8);
+      const f = Math.floor(Math.min(p.t, p.clip.dur - 1e-3) * (p.clip.smooth ? 24 : 12));
+      if (f !== p.f) { p.f = renderFrame(p.cv, p.clip, p.t, .5, true); p.bar.style.width = (100 * Math.min(1, p.t / p.clip.dur)) + '%'; }
+    }
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}
+</script>
