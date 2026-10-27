@@ -394,9 +394,14 @@ function cabinRot(t, t0) {
 const jolt = (t, times) => times.reduce((a, t0) => { const d = t - t0; return d >= 0 && d < .18 ? a + (1 - d / .18) * 10 : a; }, 0);
 const OPEN = { id: '60-apertura-metrocable', title: 'Aliados presentan, sobre el metrocable', dur: 12, smooth: true, alpha: true, preview: testShot,
   text: 'Va encima del plano del metrocable. Un cable de crayón cruza el cuadro y los nombres de los aliados llegan colgados como cabinas: entran rápido, frenan, se mecen y salen. «presentan» llega escrito a mano y luego caen de golpe tres tiras rasgadas con Ciudad Caracola, una espiral y destellos. Al final todo sube y deja limpio el plano. Dura 12 s.',
-  draw(ctx, t) {
-    const j = jolt(t, [6.0, 6.35, 6.7]), jx = wob(FRAME, j, 3), jy = wob(FRAME + 50, j, 4);
-    const ey = exitY(t, 12); ctx.save(); ctx.translate(jx, jy + ey);
+  draw(ctx, t) { drawOpen(ctx, t, true, 12); } };
+// la versión corta termina en «presentan»: se queda un momento y todo sube
+const OPEN_CORTA = { id: '59-apertura-metrocable-hasta-presentan', title: 'Aliados presentan (versión corta)', dur: 7.6, smooth: true, alpha: true, preview: testShot,
+  text: 'La misma apertura sobre el metrocable, pero termina en «presentan»: los tres aliados pasan como cabinas, llega «presentan» de golpe, se queda un momento y todo sube dejando limpio el plano. Dura 7,6 s.',
+  draw(ctx, t) { drawOpen(ctx, t, false, 7.6); } };
+function drawOpen(ctx, t, full, dur) {
+    const j = full ? jolt(t, [6.0, 6.35, 6.7]) : jolt(t, [5.1]), jx = wob(FRAME, j, 3), jy = wob(FRAME + 50, j, 4);
+    const ey = exitY(t, dur); ctx.save(); ctx.translate(jx, jy + ey);
     // cable
     const cab = ease(seg(t, 0, .45));
     crayon(ctx, [slice(linePts(...CA, ...CB, 24), cab)], C.noche, { w: 11 });
@@ -415,13 +420,14 @@ const OPEN = { id: '60-apertura-metrocable', title: 'Aliados presentan, sobre el
       ctx.restore();
     });
     // presentan
-    const ps = pop(t, 5.1, .25), pout = inn(seg(t, 5.85, 6.05));
+    const ps = pop(t, 5.1, .25), pout = full ? inn(seg(t, 5.85, 6.05)) : 0;
     if (ps > 0 && pout < 1) {
-      inLabel(ctx, 960 + 1400 * pout, 540, -.05, ps, () => {
+      inLabel(ctx, 960 + 1400 * pout, 540, -.05, ps * (full ? 1 : 1.6), () => {
         label(ctx, 0, 0, 420, 120, '#FBFAF6', 410, 0, 1);
         txt(ctx, 'presentan', "600 92px Caveat, 'Bradley Hand', cursive", 0, 2, { col: C.lila });
       });
     }
+    if (!full) { ctx.restore(); return; }
     // título en tiras que caen de golpe
     const T = [
       { y: 410, h: 230, fill: C.salmon, t0: 6.0, rot: -.03, seed: 501 },
@@ -437,8 +443,8 @@ const OPEN = { id: '60-apertura-metrocable', title: 'Aliados presentan, sobre el
     const sp = []; for (let k = 0; k < 6; k++) { const a = -PI / 2 + (k - 2.5) * .45 - .6, p = out(seg(t, 8.3 + k * .05, 8.7 + k * .05)); sp.push(slice(linePts(400 + 80 * Math.cos(a), 300 + 80 * Math.sin(a), 400 + 150 * Math.cos(a), 300 + 150 * Math.sin(a), 12), p)); }
     crayon(ctx, sp, C.rojo, { w: 14 });
     ctx.restore();
-  } };
-GROUPS.unshift({ h: 'Apertura', small: 'sobre el metrocable', p: 'Rápida y con movimiento, con fondo transparente para ponerla encima del video del metrocable. Aquí se ve sobre un plano fotocopiado de prueba.', clips: [OPEN] });
+}
+GROUPS.unshift({ h: 'Apertura', small: 'sobre el metrocable', p: 'Rápida y con movimiento, con fondo transparente para ponerla encima del video del metrocable. Aquí se ve sobre un plano fotocopiado de prueba.', clips: [OPEN_CORTA, OPEN] });
 
 const CLIPS = GROUPS.flatMap(g => g.clips);
 
