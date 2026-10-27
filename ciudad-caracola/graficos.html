@@ -1,0 +1,297 @@
+<title>Ciudad Caracola · Gráficos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,300;0,400;0,500;0,700;0,800;1,300;1,400&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+/* Tablero de piezas a 1920×1080 escaladas; en modo #render se muestran a tamaño real para exportar PNG. */
+:root{
+  --salmon:#EC9C7A;   /* fondo de portada, acento */
+  --noche:#0F2A3A;    /* texto principal, créditos */
+  --durazno:#F6CDB6;  /* círculo de la portada */
+  --sol:#FFD86E;      /* I · la casa */
+  --coral:#E19676;    /* II · el negocio */
+  --lila:#584986;     /* III · el taller */
+  --lila-claro:#C9BEE6;
+  --mar:#1F7593;      /* IV · el barrio */
+  --niebla:#E3EEF3;   /* fondo del tablero */
+  --blanco:#FFFDFB;
+  --display:'Urbanist', 'Avenir Next', 'Segoe UI', sans-serif;
+  --mano:'Caveat', 'Bradley Hand', cursive;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--niebla);color:var(--noche);font-family:var(--display)}
+
+/* ── tablero ── */
+.board{max-width:1240px;margin:0 auto;padding-block:40px 80px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:grid;gap:56px}
+.intro{display:grid;gap:12px;max-width:68ch}
+.intro .eyebrow{font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mar)}
+.intro h1{margin:0;font-size:clamp(36px,6vw,64px);font-weight:800;line-height:.95;letter-spacing:-.02em;text-wrap:balance}
+.intro h1 i{font-weight:300}
+.intro p{margin:0;font-size:17px;line-height:1.55}
+.group{display:grid;gap:20px}
+.group-head{display:grid;gap:4px;border-top:1.5px solid var(--noche);padding-top:14px}
+.group-head h2{margin:0;font-size:24px;font-weight:700;display:flex;gap:10px;align-items:baseline}
+.group-head h2 small{font-family:var(--mano);font-size:24px;font-weight:600;color:var(--mar)}
+.group-head p{margin:0;font-size:15px;line-height:1.5;max-width:70ch;color:#3b4f5c}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,380px),1fr));gap:24px}
+.grid.wide{grid-template-columns:1fr}
+figure{margin:0;display:grid;gap:8px;min-width:0}
+figcaption{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:#3b4f5c;flex-wrap:wrap}
+figcaption b{color:var(--noche);font-weight:700}
+figcaption code{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.stage{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:6px;container-type:inline-size}
+.stage.alpha{background:
+  linear-gradient(180deg,rgba(15,42,58,.05),rgba(15,42,58,.45)),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect width='8' height='8' fill='%23c9d3d8'/%3E%3Crect x='8' y='8' width='8' height='8' fill='%23c9d3d8'/%3E%3Crect x='8' width='8' height='8' fill='%23dde5e9'/%3E%3Crect y='8' width='8' height='8' fill='%23dde5e9'/%3E%3C/svg%3E");}
+.stage .frame{position:absolute;left:0;top:0;transform-origin:0 0;transform:scale(calc(100cqw / 1920px))}
+@supports not (width:1cqw){.stage .frame{transform:scale(.3)}}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:20px 32px;font-size:15px;line-height:1.5}
+.notes h3{margin:0 0 4px;font-size:15px;font-weight:700}
+.notes p{margin:0}
+
+/* ── piezas a 1920×1080 ── */
+.frame{width:1920px;height:1080px;position:relative;overflow:hidden;font-family:var(--display)}
+.frame svg{position:absolute;inset:0;width:1920px;height:1080px}
+.frame.transparent{background:transparent}
+
+/* portada */
+.f-title{background:var(--salmon);color:var(--noche)}
+.f-title .t1{position:absolute;left:150px;bottom:350px;font-size:250px;font-weight:800;letter-spacing:-.035em;line-height:.8}
+.f-title .t2{position:absolute;left:150px;bottom:150px;font-size:250px;font-weight:300;font-style:italic;letter-spacing:-.03em;line-height:.8}
+.f-title .hand{position:absolute;right:150px;bottom:150px;font-family:var(--mano);font-size:54px;transform:rotate(-4deg);transform-origin:right bottom}
+
+/* cartelas de movimiento */
+.f-mov{background:var(--niebla);color:var(--noche)}
+.f-mov.dark{background:var(--noche);color:var(--blanco)}
+.f-mov .num{position:absolute;left:150px;top:300px;width:120px;height:120px;border-radius:50%;display:grid;place-items:center;font-size:52px;font-weight:700;color:var(--noche)}
+.f-mov .head{position:absolute;left:150px;top:470px;width:900px;font-size:92px;font-weight:700;line-height:1;letter-spacing:-.02em;text-wrap:balance}
+.f-mov .head i{font-weight:300}
+.f-mov .place{position:absolute;left:150px;top:300px;margin-left:150px;line-height:120px;font-family:var(--mano);font-size:64px}
+
+/* territorio (overlay) */
+.f-terr .box{position:absolute;left:150px;bottom:150px;color:var(--blanco);text-shadow:0 2px 24px rgba(15,42,58,.45)}
+.f-terr .k{display:flex;align-items:center;gap:18px;font-size:34px;font-weight:500;letter-spacing:.04em}
+.f-terr .k .dot{width:26px;height:26px;border-radius:50%;box-shadow:0 0 0 4px rgba(255,253,251,.9)}
+.f-terr .n{margin-top:16px;font-size:132px;font-weight:800;letter-spacing:-.03em;line-height:.9}
+.f-terr .n i{font-weight:300}
+
+/* tercio inferior (overlay) */
+.f-lt .box{position:absolute;left:150px;bottom:130px;display:grid;grid-template-columns:auto 1fr;column-gap:28px;align-items:center;color:var(--blanco);text-shadow:0 2px 20px rgba(15,42,58,.5)}
+.f-lt .mark{width:70px;height:70px;grid-row:span 2;position:relative}
+.f-lt .mark svg{position:static;width:70px;height:70px;filter:drop-shadow(0 2px 10px rgba(15,42,58,.35))}
+.f-lt .name{font-size:62px;font-weight:700;letter-spacing:-.01em;line-height:1.05}
+.f-lt .role{font-size:34px;font-weight:400;line-height:1.3}
+.f-lt .role i{font-weight:300}
+
+/* créditos */
+.f-cred{background:var(--noche);color:var(--blanco)}
+.f-cred .col{position:absolute;top:200px;width:620px;display:grid;gap:44px}
+.f-cred .row{display:grid;gap:6px}
+.f-cred .lbl{font-size:26px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--salmon)}
+.f-cred .val{font-size:44px;font-weight:400;line-height:1.25}
+.f-cred .val.ph{opacity:.45;font-style:italic;font-weight:300}
+.f-cred .end{position:absolute;left:150px;bottom:150px;font-family:var(--mano);font-size:52px;color:var(--durazno)}
+.f-cred .logos{position:absolute;left:150px;right:150px;bottom:290px;display:flex;gap:48px;align-items:center}
+.f-cred .logos .lbl{margin-right:12px}
+.f-cred .logo{width:260px;height:110px;border:2px dashed rgba(255,253,251,.25);border-radius:8px;display:grid;place-items:center;font-size:22px;color:rgba(255,253,251,.45)}
+.f-cred.big .center{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:24px;text-align:center}
+.f-cred.big .center .t{font-size:150px;font-weight:800;letter-spacing:-.03em;line-height:.85}
+.f-cred.big .center .t i{font-weight:300}
+.f-cred.big .center .s{font-size:40px;font-weight:400;opacity:.85}
+
+/* modo render: piezas a tamaño real, una debajo de otra */
+.render body,html.render body{background:#777}
+html.render .board{display:block;padding:0;max-width:none}
+html.render .intro,html.render .group-head,html.render figcaption,html.render .notes{display:none}
+html.render .grid{display:block}
+html.render .stage{width:1920px;height:1080px;aspect-ratio:auto;border-radius:0;background:none;margin:0 0 40px}
+html.render .stage .frame{transform:none}
+
+@media (prefers-reduced-motion:no-preference){.stage{transition:box-shadow .2s}.stage:hover{box-shadow:0 10px 30px rgba(15,42,58,.18)}}
+</style>
+
+<main class="board">
+  <header class="intro">
+    <span class="eyebrow">Cuidadoras Decididas · Microdocumental · Medellín 2026</span>
+    <h1>Ciudad <i>Caracola</i>, paquete gráfico</h1>
+    <p>Todas las piezas que el montaje necesita en pantalla, con la misma identidad de la propuesta: la espiral, los colores de cada movimiento y la letra a mano. Cada pieza mide 1920×1080. Las que van sobre la imagen (territorios y nombres) se entregan como PNG con fondo transparente; aquí se ven sobre un damero.</p>
+  </header>
+  <div id="groups"></div>
+  <section class="group">
+    <div class="group-head"><h2>Cómo usarlas <small>en el montaje</small></h2></div>
+    <div class="notes">
+      <div><h3>Duraciones sugeridas</h3><p>Portada 5 s con fundido desde negro. Cartelas de movimiento 3 a 4 s, sobre silencio o sobre el inicio de la voz en off. Territorio 3 s sobre el plano general. Nombres 4 s, solo la primera vez que aparece cada mujer.</p></div>
+      <div><h3>Margen seguro</h3><p>Todo el texto queda a 150 px del borde, dentro del área segura de títulos. Funciona igual en pantalla, proyección y redes en 16:9.</p></div>
+      <div><h3>Sobriedad</h3><p>Los nombres no llevan placa de color para no tapar los planos. Los logos de aliados van solo en los créditos, como pide la propuesta.</p></div>
+      <div><h3>Lo que falta</h3><p>Los nombres de las seis protagonistas, sus negocios y el equipo. Los textos entre corchetes son provisionales.</p></div>
+    </div>
+  </section>
+</main>
+
+<script>
+// ── Datos editables: cambie aquí nombres, negocios y créditos ──
+const DATA = {
+  territorios: [
+    { id: 'c1', clave: 'Comuna 1', nombre: 'Popular', color: 'var(--mar)' },
+    { id: 'c3', clave: 'Comuna 3', nombre: 'Manrique', color: 'var(--lila-claro)' },
+    { id: 'sc', clave: 'Corregimiento', nombre: 'San Cristóbal', color: 'var(--sol)' },
+  ],
+  protagonistas: [
+    { nombre: '[Nombre Apellido]', negocio: '[Su negocio]', territorio: 'c1' },
+    { nombre: '[Nombre Apellido]', negocio: '[Su negocio]', territorio: 'c1' },
+    { nombre: '[Nombre Apellido]', negocio: '[Su negocio]', territorio: 'c3' },
+    { nombre: '[Nombre Apellido]', negocio: '[Su negocio]', territorio: 'c3' },
+    { nombre: '[Nombre Apellido]', negocio: '[Su negocio]', territorio: 'sc' },
+    { nombre: '[Nombre Apellido]', negocio: '[Su negocio]', territorio: 'sc' },
+  ],
+  movimientos: [
+    { n: 'I',   lugar: 'la casa',    titulo: 'El cuidado hace posible la vida', color: 'var(--sol)' },
+    { n: 'II',  lugar: 'el negocio', titulo: '¿A qué hora empieza realmente el trabajo de una mujer?', color: 'var(--coral)' },
+    { n: 'III', lugar: 'el taller',  titulo: 'Una habitación <i>propia</i>', color: 'var(--lila-claro)' },
+    { n: 'IV',  lugar: 'el barrio',  titulo: 'El barrio no es solo un barrio. <i>Es una red.</i>', color: 'var(--mar)' },
+  ],
+  creditos: [
+    ['Con', null],               // se llena con las protagonistas
+    ['Dirección', '[Nombre]'],
+    ['Cámara y fotografía', '[Nombre]'],
+    ['Sonido directo', '[Nombre]'],
+    ['Voz en off', '[Nombre]'],
+    ['Montaje', '[Nombre]'],
+  ],
+  aliados: ['[Logo aliado]', '[Logo aliado]', '[Logo aliado]'],
+};
+
+// ── Espiral de Arquímedes: r = b·θ ──
+function spiral(cx, cy, b, t0, t1, steps = 400) {
+  let d = '';
+  for (let i = 0; i <= steps; i++) {
+    const t = t0 + (t1 - t0) * i / steps, r = b * t;
+    d += (i ? 'L' : 'M') + (cx + r * Math.cos(t)).toFixed(1) + ' ' + (cy + r * Math.sin(t)).toFixed(1);
+  }
+  return d;
+}
+const at = (cx, cy, b, t) => [cx + b * t * Math.cos(t), cy + b * t * Math.sin(t)];
+const PI = Math.PI;
+// ángulos de las cuatro vueltas: casa → negocio → taller → barrio
+const STOPS = [2.15 * PI, 3.45 * PI, 4.7 * PI, 5.95 * PI];
+const COLORS = ['var(--sol)', 'var(--coral)', 'var(--lila)', 'var(--mar)'];
+
+function spiralSVG({ cx, cy, b, end, stroke, width = 4, dots = [], halo }) {
+  let s = `<svg viewBox="0 0 1920 1080" aria-hidden="true">`;
+  if (halo) s += `<circle cx="${cx}" cy="${cy}" r="${halo.r}" fill="${halo.fill}"/>`;
+  s += `<path d="${spiral(cx, cy, b, 0.5 * PI, end)}" fill="none" stroke="${stroke}" stroke-width="${width}" stroke-linecap="round"/>`;
+  for (const d of dots) {
+    const [x, y] = at(cx, cy, b, d.t);
+    s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${d.r}" fill="${d.fill}" stroke="${d.ring || stroke}" stroke-width="${d.rw ?? width}"/>`;
+  }
+  return s + '</svg>';
+}
+
+// ── Piezas ──
+function title() {
+  const dots = [
+    { t: 2.0 * PI, r: 20, fill: 'var(--sol)' }, { t: 2.6 * PI, r: 20, fill: 'var(--sol)' },
+    { t: 3.3 * PI, r: 22, fill: 'var(--lila)' }, { t: 4.1 * PI, r: 22, fill: 'var(--lila)' },
+    { t: 4.9 * PI, r: 24, fill: 'var(--mar)' }, { t: 5.6 * PI, r: 24, fill: 'var(--mar)' },
+  ];
+  return `<div class="frame f-title">
+    ${spiralSVG({ cx: 1300, cy: 470, b: 20, end: 6.25 * PI, stroke: 'var(--noche)', width: 4, dots, halo: { r: 280, fill: 'var(--durazno)' } })}
+    <div class="t1">Ciudad</div><div class="t2">Caracola</div>
+    <div class="hand">seis voces en una misma espiral</div>
+  </div>`;
+}
+
+function movement(m, i) {
+  const dark = i === 3;
+  const stroke = dark ? 'var(--blanco)' : 'var(--noche)';
+  const dots = STOPS.map((t, k) => k === i
+    ? { t, r: 34, fill: m.color, ring: stroke, rw: 4 }
+    : { t, r: 13, fill: k < i ? COLORS[k] : (dark ? 'var(--noche)' : 'var(--niebla)'), ring: stroke, rw: 3 });
+  // la espiral se dibuja solo hasta el movimiento actual; el resto queda tenue
+  const cx = 1380, cy = 540, b = 22;
+  const done = spiral(cx, cy, b, 0.5 * PI, STOPS[i] + (i === 3 ? 0.5 * PI : 0));
+  const rest = spiral(cx, cy, b, STOPS[i], 6.4 * PI);
+  let s = `<svg viewBox="0 0 1920 1080" aria-hidden="true">
+    <circle cx="${cx}" cy="${cy}" r="${b * STOPS[i] + 70}" fill="${dark ? 'rgba(255,253,251,.06)' : 'rgba(31,117,147,.08)'}"/>
+    <path d="${rest}" fill="none" stroke="${stroke}" stroke-opacity=".22" stroke-width="3" stroke-dasharray="2 12" stroke-linecap="round"/>
+    <path d="${done}" fill="none" stroke="${stroke}" stroke-width="4" stroke-linecap="round"/>`;
+  for (const d of dots) {
+    const [x, y] = at(cx, cy, b, d.t);
+    s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${d.r}" fill="${d.fill}" stroke="${d.ring}" stroke-width="${d.rw}"/>`;
+  }
+  s += '</svg>';
+  const numColor = i === 2 ? 'var(--noche)' : 'var(--noche)';
+  return `<div class="frame f-mov${dark ? ' dark' : ''}">${s}
+    <div class="num" style="background:${m.color};color:${numColor}">${m.n}</div>
+    <div class="place" style="color:${dark ? 'var(--durazno)' : 'var(--mar)'}">${m.lugar}</div>
+    <div class="head">${m.titulo}</div>
+  </div>`;
+}
+
+function territory(t) {
+  return `<div class="frame f-terr transparent"><div class="box">
+    <div class="k"><span class="dot" style="background:${t.color}"></span>${t.clave} · Medellín</div>
+    <div class="n">${t.nombre.replace(/^(San) /, '$1 <i>') + (t.nombre.startsWith('San ') ? '</i>' : '')}</div>
+  </div></div>`;
+}
+
+function glyph(color) {
+  const d = spiral(35, 35, 2.2, 0.5 * PI, 4.4 * PI, 120);
+  const [x, y] = [35 + 2.2 * 4.4 * PI * Math.cos(4.4 * PI), 35 + 2.2 * 4.4 * PI * Math.sin(4.4 * PI)];
+  return `<svg viewBox="0 0 70 70"><path d="${d}" fill="none" stroke="var(--blanco)" stroke-width="3.5" stroke-linecap="round"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="8" fill="${color}" stroke="var(--blanco)" stroke-width="3"/></svg>`;
+}
+
+function lowerThird(p) {
+  const t = DATA.territorios.find(x => x.id === p.territorio);
+  return `<div class="frame f-lt transparent"><div class="box">
+    <div class="mark">${glyph(t.color)}</div>
+    <div class="name">${p.nombre}</div>
+    <div class="role">${p.negocio} · <i>${t.nombre}</i></div>
+  </div></div>`;
+}
+
+function credits() {
+  const ph = v => /^\[/.test(v) ? ' ph' : '';
+  const con = DATA.protagonistas.map(p => p.nombre).join('<br>');
+  const rows = DATA.creditos.slice(1).map(([l, v]) => `<div class="row"><div class="lbl">${l}</div><div class="val${ph(v)}">${v}</div></div>`).join('');
+  const logos = DATA.aliados.map(a => `<div class="logo">${a}</div>`).join('');
+  return `<div class="frame f-cred">
+    <div class="col" style="left:150px"><div class="row"><div class="lbl">Con</div><div class="val${ph(DATA.protagonistas[0].nombre)}">${con}</div></div></div>
+    <div class="col" style="left:860px;width:900px;grid-template-columns:1fr 1fr;column-gap:60px">${rows}</div>
+    <div class="logos"><span class="lbl">Con el apoyo de</span>${logos}</div>
+    <div class="end">Medellín, 2026</div>
+  </div>`;
+}
+
+function closing() {
+  return `<div class="frame f-cred big">
+    ${spiralSVG({ cx: 960, cy: 540, b: 24, end: 6.4 * PI, stroke: 'rgba(255,253,251,.10)', width: 3 })}
+    <div class="center"><div class="t">Ciudad <i>Caracola</i></div><div class="s">Cuidadoras Decididas · Comunas 1 y 3 · San Cristóbal</div></div>
+  </div>`;
+}
+
+const GROUPS = [
+  { h: 'Portada', small: 'apertura', p: 'Abre el documental. El fondo salmón y la espiral con seis puntos, uno por cada mujer, vienen de la portada de la propuesta.',
+    items: [{ id: '01-portada', html: title(), cap: 'Título principal' }, { id: '02-cierre', html: closing(), cap: 'Título de cierre, antes de créditos' }] },
+  { h: 'Movimientos', small: 'una vuelta por cada parte', p: 'La espiral crece en cada cartela: se dibuja hasta el lugar donde está el relato y el resto queda punteado. El IV va en azul noche para marcar que la historia sale de la casa al barrio.',
+    items: DATA.movimientos.map((m, i) => ({ id: `1${i + 1}-movimiento-${m.n}`, html: movement(m, i), cap: `Movimiento ${m.n} · ${m.lugar}` })) },
+  { h: 'Territorios', small: 'sobre los planos generales', p: 'PNG transparente para los planos de transición de cada territorio. Cada territorio tiene su color, que se repite en el nombre de sus dos protagonistas.',
+    items: DATA.territorios.map((t, i) => ({ id: `2${i + 1}-territorio-${t.id}`, html: territory(t), cap: `${t.clave} · ${t.nombre}`, alpha: true })) },
+  { h: 'Nombres', small: 'tercios inferiores', p: 'Uno por protagonista, la primera vez que habla. Debajo del nombre va su negocio y su territorio.',
+    items: DATA.protagonistas.map((p, i) => ({ id: `3${i + 1}-nombre-${p.territorio}`, html: lowerThird(p), cap: `Protagonista ${i + 1}`, alpha: true })) },
+  { h: 'Créditos', small: 'al final, con sobriedad', p: 'Primero ellas, luego el equipo. Los logos de aliados solo aparecen aquí.',
+    items: [{ id: '41-creditos', html: credits(), cap: 'Créditos' }] },
+];
+
+document.getElementById('groups').innerHTML = GROUPS.map(g => `
+  <section class="group">
+    <div class="group-head"><h2>${g.h} <small>${g.small}</small></h2><p>${g.p}</p></div>
+    <div class="grid${g.items.length === 1 ? ' wide' : ''}">${g.items.map(it => `
+      <figure><div class="stage${it.alpha ? ' alpha' : ''}" data-id="${it.id}" data-alpha="${it.alpha ? 1 : 0}">${it.html}</div>
+      <figcaption><b>${it.cap}</b><code>${it.id}.png</code></figcaption></figure>`).join('')}
+    </div>
+  </section>`).join('');
+
+if (location.hash === '#render') document.documentElement.classList.add('render');
+</script>
