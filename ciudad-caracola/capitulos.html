@@ -1,0 +1,498 @@
+<title>Ciudad Caracola · Capítulos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,700;0,800;1,300&family=Caveat:wght@600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Tablero de títulos de capítulo; cada clip es draw(ctx, t) a 1920×1080, compartido con render-video.js */
+:root{
+  --noche:#0F2A3A; --niebla:#E3EEF3; --mar:#1F7593; --salmon:#EC9C7A; --texto2:#3b4f5c;
+  --display:'Urbanist','Avenir Next','Segoe UI',sans-serif; --mano:'Caveat','Bradley Hand',cursive;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--niebla);color:var(--noche);font-family:var(--display)}
+.board{max-width:1240px;margin:0 auto;padding-block:40px 80px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:grid;gap:48px}
+.intro{display:grid;gap:12px;max-width:68ch}
+.eyebrow{font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mar)}
+h1{margin:0;font-size:clamp(36px,6vw,64px);font-weight:800;line-height:.95;letter-spacing:-.02em;text-wrap:balance}
+h1 i{font-weight:300}
+.intro p{margin:0;font-size:17px;line-height:1.55}
+.group{display:grid;gap:20px}
+.group-head{display:grid;gap:4px;border-top:1.5px solid var(--noche);padding-top:14px}
+.group-head h2{margin:0;font-size:24px;font-weight:700;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.group-head h2 small{font-family:var(--mano);font-size:24px;font-weight:600;color:var(--mar)}
+.group-head p{margin:0;font-size:15px;line-height:1.5;max-width:70ch;color:var(--texto2)}
+.clips{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,380px),1fr));gap:32px 24px}
+figure{margin:0;display:grid;gap:10px;min-width:0}
+.stage{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;border-radius:6px;overflow:hidden;cursor:pointer;background:#888}
+.stage canvas{display:block;width:100%;height:100%}
+.stage:focus-visible{outline:3px solid var(--mar);outline-offset:3px}
+.bar{position:absolute;left:0;bottom:0;height:3px;background:var(--salmon);width:0}
+.state{position:absolute;right:10px;top:10px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:rgba(15,42,58,.55);padding:4px 9px;border-radius:99px}
+.meta{display:grid;gap:4px}
+.meta h3{margin:0;font-size:18px;font-weight:700}
+.meta p{margin:0;font-size:14px;line-height:1.5;color:var(--texto2)}
+.meta .file{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--noche);overflow-wrap:anywhere}
+</style>
+
+<main class="board">
+  <header class="intro">
+    <span class="eyebrow">Cuidadoras Decididas · Microdocumental · Medellín 2026</span>
+    <h1>Ciudad <i>Caracola</i>, capítulos</h1>
+    <p>Los cuatro títulos de capítulo animados con papel rasgado, crayón y papel térmico, en la misma estética del paquete de collage. Toca cualquier clip para pausarlo.</p>
+  </header>
+  <div id="groups"></div>
+</main>
+
+<script>
+// ── utilidades ──
+const C = { noche:'#0F2A3A', sol:'#FFD23F', coral:'#E8704A', rojo:'#D93A2B', lila:'#6B4FB0', mar:'#1F7593', verde:'#9BD43A', salmon:'#EC9C7A', durazno:'#F6CDB6', papel:'#EDEBE6' };
+const PI = Math.PI, TAU = 2 * PI;
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const ease = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const out = x => 1 - Math.pow(1 - x, 3);
+const inn = x => x * x * x;
+const back = x => { const c = 1.4; return x <= 0 ? 0 : 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const H = n => { const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function alpha(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${n >> 8 & 255},${n & 255},${a})`; }
+let BOIL = 0, FRAME = 0;
+const wob = (i, amp, s = 0) => { const k = s * 7.3 + BOIL * 2.9; return amp * (Math.sin(i * .17 + k) + .6 * Math.sin(i * .43 + k * 1.7) + .3 * Math.sin(i * 1.3 + k * .6)) / 1.9; };
+const slice = (pts, p) => pts.slice(0, Math.max(0, Math.ceil(pts.length * clamp(p))));
+const linePts = (x0, y0, x1, y1, step = 14) => { const n = Math.max(2, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / step)); return Array.from({ length: n + 1 }, (_, i) => [lerp(x0, x1, i / n), lerp(y0, y1, i / n)]); };
+
+// ── texturas (una vez) ──
+const mk = (w, h, fn) => { const c = document.createElement('canvas'); c.width = w; c.height = h; fn(c.getContext('2d'), w, h); return c; };
+// huecos de la cera: dónde el crayón no toca el papel
+const WAX = mk(1024, 1024, (g, w, h) => {
+  const im = g.createImageData(w, h), R = rng(11);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4, n = R() * .7 + .3 * (Math.sin(y * .9 + Math.sin(x * .05) * 3) * .5 + .5);
+    im.data[i + 3] = n > .76 ? 255 : n > .66 ? 100 : 0;
+  }
+  g.putImageData(im, 0, 0);
+});
+const GRAIN = mk(960, 540, (g, w, h) => {
+  const im = g.createImageData(w, h), R = rng(3);
+  for (let i = 0; i < im.data.length; i += 4) { const v = 150 + R() * 105; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255; }
+  g.putImageData(im, 0, 0);
+});
+// "foto" fotocopiada de prueba: manchas suaves en trama de puntos, como una imagen impresa en papel térmico
+function smooth(x, y, s) { let v = 0, a = 1, f = 1; for (let o = 0; o < 4; o++) { v += a * Math.sin(x * .004 * f + s + o * 1.7) * Math.cos(y * .005 * f - s * .7 + o * 2.3); a *= .5; f *= 2.1; } return v; }
+const HALFTONE = mk(1920, 1080, (g, w, h) => {
+  g.fillStyle = C.papel; g.fillRect(0, 0, w, h); g.fillStyle = '#1b1b1b';
+  const cell = 9;
+  for (let y = 0; y < h; y += cell) for (let x = 0; x < w; x += cell) {
+    const ox = (y / cell) % 2 ? cell / 2 : 0;
+    const d = clamp(.45 + .38 * smooth(x, y, 1.3) + .1 * Math.sin(x * .02 + y * .013));
+    const r = cell * .62 * Math.sqrt(d);
+    if (r > .5) { g.beginPath(); g.arc(x + ox, y, r, 0, TAU); g.fill(); }
+  }
+});
+// papel térmico: blanco gris con bandas del cabezal, rayas y motas de tóner
+function thermal(seed) {
+  return mk(1920, 1080, (g, w, h) => {
+    const R = rng(seed);
+    g.fillStyle = '#E9E8E3'; g.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y += 3) { g.fillStyle = `rgba(40,40,40,${R() * .05})`; g.fillRect(0, y, w, 2); }
+    for (let k = 0; k < 6; k++) { const x = R() * w; g.fillStyle = `rgba(30,30,30,${.03 + R() * .06})`; g.fillRect(x, 0, 1 + R() * 3, h); }
+    for (let k = 0; k < 900; k++) { g.fillStyle = `rgba(20,20,20,${.2 + R() * .5})`; g.beginPath(); g.arc(R() * w, R() * h, R() * 1.8 + .3, 0, TAU); g.fill(); }
+    g.globalCompositeOperation = 'multiply'; g.globalAlpha = .35; g.drawImage(GRAIN, 0, 0, w, h);
+  });
+}
+const THERMAL = Array.from({ length: 6 }, (_, i) => thermal(20 + i));
+
+// ── crayón: el trazo se pinta en una capa aparte y se le quitan los huecos de la cera ──
+const LAYER = mk(1920, 1080, () => {}), LG = LAYER.getContext('2d');
+function crayon(ctx, strokes, col, { w = 16, a = .95 } = {}) {
+  LG.setTransform(1, 0, 0, 1, 0, 0); LG.globalCompositeOperation = 'source-over'; LG.clearRect(0, 0, 1920, 1080);
+  LG.lineCap = 'round'; LG.lineJoin = 'round'; LG.strokeStyle = col;
+  strokes.forEach((pts, si) => {
+    if (pts.length < 2) return;
+    for (let p = 0; p < 3; p++) {
+      LG.beginPath();
+      pts.forEach(([x, y], i) => { const X = x + wob(i, w * .18, si * 3 + p * 5) , Y = y + wob(i + 400, w * .18, si * 3 + p * 5); i ? LG.lineTo(X, Y) : LG.moveTo(X, Y); });
+      LG.lineWidth = w * [1, .7, .5][p]; LG.globalAlpha = [.9, .8, .9][p]; LG.stroke();
+    }
+  });
+  LG.globalAlpha = 1; LG.globalCompositeOperation = 'destination-out';
+  const ox = (BOIL * 337) % 1024, oy = (BOIL * 191) % 1024;
+  for (let y = -oy; y < 1080; y += 1024) for (let x = -ox; x < 1920; x += 1024) LG.drawImage(WAX, x, y);
+  ctx.save(); ctx.globalAlpha = a; ctx.drawImage(LAYER, 0, 0, 1920, 1080); ctx.restore();
+}
+// fondo de prueba para ver las piezas transparentes
+function testShot(ctx) { ctx.drawImage(HALFTONE, 0, 0); }
+
+// formas de crayón
+const ellipsePts = (cx, cy, rx, ry, a0, turns, s = 0) => { const n = Math.ceil(90 * turns); return Array.from({ length: n + 1 }, (_, i) => { const a = a0 + TAU * turns * i / n, k = 1 + .05 * Math.sin(a * 2 + s) - .03 * i / n; return [cx + rx * k * Math.cos(a), cy + ry * k * Math.sin(a)]; }); };
+function zigzag(cx, cy, rx, ry, ang, gap) {
+  const pts = [], ca = Math.cos(ang), sa = Math.sin(ang); let dir = 1;
+  for (let v = -ry; v <= ry; v += gap) {
+    const half = rx * Math.sqrt(Math.max(0, 1 - (v / ry) ** 2));
+    const a = [-half * dir, v], b = [half * dir, v + gap * .5]; dir *= -1;
+    for (const [x, y] of [a, b]) pts.push([cx + x * ca - y * sa, cy + x * sa + y * ca]);
+  }
+  const dense = []; for (let i = 0; i < pts.length - 1; i++) dense.push(...linePts(...pts[i], ...pts[i + 1], 18).slice(i ? 1 : 0));
+  return dense;
+}
+const spiralPts = (cx, cy, b, t0, t1) => { const n = Math.ceil((t1 - t0) * 22); return Array.from({ length: n + 1 }, (_, i) => { const th = t0 + (t1 - t0) * i / n; return [cx + b * th * Math.cos(th), cy + b * th * Math.sin(th)]; }); };
+
+// ── papel rasgado ──
+function tear(x0, y0, x1, y1, seed, rough = 22, depth = 7) {
+  let pts = [[x0, y0], [x1, y1]]; const R = rng(seed);
+  for (let d = 0, r = rough; d < depth; d++, r *= .55) {
+    const np = [pts[0]];
+    for (let i = 0; i < pts.length - 1; i++) { const [ax, ay] = pts[i], [bx, by] = pts[i + 1], dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy) || 1, o = (R() - .5) * 2 * r; np.push([(ax + bx) / 2 - dy / L * o, (ay + by) / 2 + dx / L * o], pts[i + 1]); }
+    pts = np;
+  }
+  return pts;
+}
+// pinta una tira con borde rasgado arriba y abajo; fill es un color o un canvas
+function strip(ctx, top, bot, fill, { dx = 0, dy = 0, rot = 0, cx = 960, cy = 540, fiber = true } = {}) {
+  ctx.save(); ctx.translate(cx + dx, cy + dy); ctx.rotate(rot); ctx.translate(-cx, -cy);
+  const path = () => { ctx.beginPath(); top.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); [...bot].reverse().forEach(([x, y]) => ctx.lineTo(x, y)); ctx.closePath(); };
+  path(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 6; ctx.fillStyle = '#ddd'; ctx.fill(); ctx.shadowColor = 'transparent';
+  path(); ctx.save(); ctx.clip();
+  if (typeof fill === 'string') { ctx.fillStyle = fill; ctx.fillRect(-4000, -4000, 8000, 8000); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = .35; for (const [gx, gy] of [[-1920, -1080], [0, -1080], [-1920, 0], [0, 0]]) ctx.drawImage(GRAIN, gx, gy, 1920, 1080); }
+  else for (const [gx, gy] of [[-1920, -1080], [0, -1080], [-1920, 0], [0, 0]]) ctx.drawImage(fill, gx, gy);
+  ctx.restore();
+  if (fiber) for (const edge of [top, bot]) {
+    ctx.beginPath(); edge.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+    ctx.lineWidth = 7; ctx.strokeStyle = 'rgba(250,248,242,.85)'; ctx.stroke();
+    ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.stroke();
+  }
+  ctx.restore();
+}
+
+const GROUPS = [];
+// ── títulos de capítulo ──
+window.FONTS_READY = Promise.all(["800 80px Urbanist", "300 80px Urbanist", "italic 300 80px Urbanist", "700 60px 'Courier Prime'", "400 30px 'Courier Prime'", "600 60px Caveat"].map(f => document.fonts.load(f)));
+const UR = (w, px, it = '') => `${it}${w} ${px}px Urbanist, 'Avenir Next', sans-serif`;
+const MONO = (w, px) => `${w} ${px}px 'Courier Prime', 'Courier New', monospace`;
+function txt(ctx, s, font, x, y, { col = C.noche, align = 'center', a = 1, track = 0 } = {}) {
+  ctx.save(); ctx.font = font; ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.fillStyle = col; ctx.globalAlpha *= a;
+  if ('letterSpacing' in ctx) ctx.letterSpacing = track + 'px';
+  ctx.fillText(s, x, y); ctx.restore();
+}
+function measure(ctx, s, font, track = 0) { ctx.save(); ctx.font = font; if ('letterSpacing' in ctx) ctx.letterSpacing = track + 'px'; const w = ctx.measureText(s).width; ctx.restore(); return w; }
+// salto de cuadro a cuadro: aparece grande y cae en su sitio en 3 o 4 dibujos
+const pop = (t, t0, d = .3) => { const p = seg(t, t0, t0 + d); return p <= 0 ? 0 : p >= 1 ? 1 : lerp(1.35, 1, out(p)); };
+// etiqueta de papel con bordes rasgados arriba y abajo, centrada en (x, y)
+function label(ctx, x, y, w, h, fill, seed, rot = 0, s = 1) {
+  if (s <= 0) return;
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.rotate(rot + wob(seed, .006)); ctx.translate(-x, -y);
+  strip(ctx, tear(x - w / 2, y - h / 2, x + w / 2, y - h / 2, seed, 9, 5), tear(x - w / 2, y + h / 2, x + w / 2, y + h / 2, seed + 1, 9, 5), fill, { cx: x, cy: y });
+  ctx.restore();
+}
+function inLabel(ctx, x, y, rot, s, fn) { if (s <= 0) return; ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.rotate(rot + wob(x, .006)); fn(); ctx.restore(); }
+// números romanos en crayón
+function numeral(n, x, y, h) {
+  const strokes = [], w = h * .5; let cx = x;
+  for (const ch of n) {
+    if (ch === 'I') { strokes.push(linePts(cx, y - h / 2, cx + 4, y + h / 2, 14), linePts(cx - w * .35, y - h / 2, cx + w * .35, y - h / 2 + 4, 14), linePts(cx - w * .35, y + h / 2, cx + w * .38, y + h / 2 - 3, 14)); cx += w * 1.05; }
+    else { cx += w * .25; strokes.push(linePts(cx - w * .6, y - h / 2, cx, y + h / 2, 14), linePts(cx, y + h / 2, cx + w * .6, y - h / 2, 14)); cx += w * 1.1; }
+  }
+  return strokes;
+}
+// dibuja una lista de trazos uno tras otro según el avance p
+function drawSeq(strokes, p) { const n = strokes.length; return strokes.map((s, i) => slice(s, clamp(p * n - i))); }
+const bgPaper = (ctx, t) => ctx.drawImage(THERMAL[Math.floor(t * 12) % 6], 0, 0);
+const flatPaper = (ctx, col) => { ctx.fillStyle = col; ctx.fillRect(0, 0, 1920, 1080); ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = .3; ctx.drawImage(GRAIN, 0, 0, 1920, 1080); ctx.restore(); };
+const grainTop = ctx => { ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = .14; ctx.drawImage(GRAIN, 0, 0, 1920, 1080); const v = ctx.createRadialGradient(960, 540, 560, 960, 540, 1180); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(40,30,20,.28)'); ctx.globalAlpha = 1; ctx.fillStyle = v; ctx.fillRect(0, 0, 1920, 1080); ctx.restore(); };
+// salida: todo se va hacia arriba como una hoja que se retira
+const exitY = (t, dur) => -1250 * inn(seg(t, dur - .7, dur));
+
+const CHAPTERS = [];
+
+// I · El cuidado hace posible la vida
+CHAPTERS.push({ id: '61-capitulo-I', title: 'I · El cuidado hace posible la vida', dur: 8, smooth: true,
+  text: 'Las palabras llegan en tiras de papel, una tras otra, con salto de cuadro a cuadro. De «la vida» brota una planta de crayón y salen destellos. Al final todo sube como una hoja que se retira.',
+  draw(ctx, t) {
+    bgPaper(ctx, t);
+    const ey = exitY(t, 8); ctx.save(); ctx.translate(0, ey);
+    ctx.save(); ctx.globalAlpha = 1;
+    const L = [
+      { s: 'El cuidado', f: UR(800, 150), x: 900, y: 330, fill: '#FBFAF6', t0: 1.0, rot: -.025, col: C.noche },
+      { s: 'hace posible', f: UR(300, 120), x: 840, y: 545, fill: HALFTONE, t0: 1.55, rot: .018, col: C.noche, box: '#FBFAF6' },
+      { s: 'la vida', f: UR(300, 150, 'italic '), x: 960, y: 770, fill: C.sol, t0: 2.15, rot: -.012, col: C.noche },
+    ];
+    L.forEach((l, i) => {
+      const s = pop(t, l.t0), w = measure(ctx, l.s, l.f) + 110, h = parseInt(l.f.match(/(\d+)px/)[1]) * 1.25;
+      label(ctx, l.x, l.y, w, h, l.fill, 40 + i * 5, l.rot, s);
+      inLabel(ctx, l.x, l.y, l.rot, s, () => {
+        if (l.box) { ctx.fillStyle = l.box; ctx.fillRect(-w / 2 + 30, -h * .36, w - 60, h * .72); }
+        txt(ctx, l.s, l.f, 0, 4, { col: l.col });
+      });
+    });
+    ctx.restore();
+    // número
+    crayon(ctx, drawSeq(numeral('I', 300, 470, 300), ease(seg(t, .2, 1.0))), C.sol, { w: 26 });
+    // planta que brota de «la vida»
+    const g = ease(seg(t, 2.9, 4.2)), bx = 1320, by = 740;
+    const stem = Array.from({ length: 30 }, (_, i) => { const u = i / 29; return [bx + 40 * Math.sin(u * 2.6), by - u * 260]; });
+    const leaf = (u, side) => { const [sx, sy] = stem[Math.round(u * 29)]; return Array.from({ length: 16 }, (_, i) => { const v = i / 15; return [sx + side * 110 * v, sy - 40 * Math.sin(v * PI) - 30 * v]; }); };
+    const leaves = [leaf(.45, 1), leaf(.7, -1), leaf(.95, 1)];
+    crayon(ctx, [slice(stem, g), ...leaves.map((lf, k) => slice(lf, seg(g, .45 + k * .15, .7 + k * .15)))], '#5BAA3A', { w: 18 });
+    // destellos
+    const sp = []; for (let k = 0; k < 6; k++) { const a = -PI / 2 + (k - 2.5) * .5, p = out(seg(t, 4.3 + k * .06, 4.8 + k * .06)), cx = bx + 60, cy = by - 300; sp.push(slice(linePts(cx + 120 * Math.cos(a), cy + 120 * Math.sin(a), cx + 190 * Math.cos(a), cy + 190 * Math.sin(a), 12), p)); }
+    crayon(ctx, sp, C.rojo, { w: 15 });
+    ctx.restore();
+    grainTop(ctx);
+  } });
+
+// II · ¿A qué hora empieza realmente el trabajo de una mujer? — una tirilla de papel térmico
+const RECEIPT = [
+  ['c', MONO(400, 30), 'CIUDAD CARACOLA'], ['c', MONO(400, 26), 'MOVIMIENTO II'], ['r'],
+  ['c', MONO(700, 64), '¿A QUÉ HORA'], ['c', MONO(700, 64), 'EMPIEZA'], ['c', MONO(700, 64), 'REALMENTE', 'mark'], ['c', MONO(700, 64), 'EL TRABAJO'], ['c', MONO(700, 64), 'DE UNA MUJER?'], ['r'],
+  ['t', '04:30', 'levantarse'], ['t', '05:00', 'el desayuno'], ['t', '05:40', 'los niños'], ['t', '06:15', 'abrir el negocio'], ['r'],
+  ['T', 'HORA DE INICIO', '??:??'], ['r'], ['c', MONO(400, 24), 'gracias por su trabajo'],
+];
+const RH = { c: 74, r: 46, t: 52, T: 70 };
+const RW = 700, RX = 1020;
+const RLEN = RECEIPT.reduce((a, l) => a + RH[l[0]], 0) + 140;
+CHAPTERS.push({ id: '62-capitulo-II', title: 'II · ¿A qué hora empieza el trabajo?', dur: 9, smooth: true,
+  text: 'La pregunta sale impresa en una tirilla de papel térmico, como la factura de una tienda, a tirones. Abajo trae horas con tareas y el total queda en «??:??». Después un crayón encierra «REALMENTE» y aparece un signo de pregunta grande.',
+  draw(ctx, t) {
+    flatPaper(ctx, C.coral);
+    const ey = exitY(t, 9); ctx.save(); ctx.translate(0, ey);
+    crayon(ctx, drawSeq(numeral('II', 230, 330, 260), ease(seg(t, .2, 1.1))), C.noche, { w: 24 });
+    // la impresora avanza a tirones, 12 veces por segundo
+    const printed = RLEN * Math.min(1, Math.floor(seg(t, .6, 5.2) * 60) / 60);
+    const top = -RLEN + printed - 20, sway = Math.sin(t * 1.3) * .012;
+    ctx.save(); ctx.translate(RX, -20); ctx.rotate(sway); ctx.translate(-RX, 20);
+    // papel con borde dentado abajo
+    const x0 = RX - RW / 2, x1 = RX + RW / 2, yb = top + RLEN;
+    ctx.beginPath(); ctx.moveTo(x0, -40); ctx.lineTo(x1, -40); ctx.lineTo(x1, yb);
+    for (let x = x1; x >= x0; x -= 20) ctx.lineTo(x - 10, yb + ((x / 20) % 2 ? 14 : 0));
+    ctx.closePath(); ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 26; ctx.shadowOffsetY = 10; ctx.fillStyle = '#F2F1EC'; ctx.fill(); ctx.shadowColor = 'transparent';
+    ctx.save(); ctx.clip(); ctx.drawImage(THERMAL[4], x0 - 200, 0, 1920, 1080 * 1.6); ctx.restore();
+    let y = top + 90, markY = 0;
+    for (const l of RECEIPT) {
+      const h = RH[l[0]], cy = y + h / 2;
+      if (l[0] === 'c') { txt(ctx, l[2], l[1], RX, cy, { col: '#1d1d1d', track: 1 }); if (l[3]) markY = cy; }
+      if (l[0] === 'r') txt(ctx, '- '.repeat(22), MONO(400, 26), RX, cy, { col: '#1d1d1d' });
+      if (l[0] === 't') { txt(ctx, l[1], MONO(700, 32), x0 + 50, cy, { align: 'left', col: '#1d1d1d' }); txt(ctx, l[2], MONO(400, 30), x1 - 50, cy, { align: 'right', col: '#1d1d1d' }); }
+      if (l[0] === 'T') { txt(ctx, l[1], MONO(700, 34), x0 + 50, cy, { align: 'left', col: '#1d1d1d' }); txt(ctx, l[2], MONO(700, 44), x1 - 50, cy, { align: 'right', col: '#1d1d1d' }); }
+      y += h;
+    }
+    ctx.restore();
+    // crayón sobre la tirilla ya impresa
+    const done = seg(t, 5.4, 6.4);
+    if (done > 0) crayon(ctx, [slice(ellipsePts(RX, markY + 4, 250, 62, -2.6, 1.15, 2), ease(done))], C.noche, { w: 15 });
+    const q = ease(seg(t, 6.3, 7.4)), qx = 1660, qy = 560;
+    const hook = Array.from({ length: 34 }, (_, i) => { const a = -PI * .95 + i / 33 * PI * 1.45; return [qx + 110 * Math.cos(a), qy - 120 + 110 * Math.sin(a)]; });
+    const tail = linePts(...hook[33], qx, qy + 90, 14);
+    crayon(ctx, drawSeq([hook, tail], q), C.sol, { w: 30 });
+    if (q >= 1) crayon(ctx, [ellipsePts(qx + 4, qy + 190, 18, 18, 0, 1.2, 1)], C.sol, { w: 30 });
+    ctx.restore();
+    grainTop(ctx);
+  } });
+
+// III · Una habitación propia — la fachada de una casa se abre como una puerta
+CHAPTERS.push({ id: '63-capitulo-III', title: 'III · Una habitación propia', dur: 8, smooth: true,
+  text: 'Se dibuja una casa grande en crayón. Su fachada es una hoja fotocopiada que se abre como una puerta, y adentro, con luz cálida, está el título. Un crayón subraya «propia».',
+  draw(ctx, t) {
+    bgPaper(ctx, t);
+    const ey = exitY(t, 8); ctx.save(); ctx.translate(0, ey);
+    const X = 560, Y = 360, W = 900, Hh = 560;
+    // interior
+    const inside = seg(t, 1.3, 1.5);
+    if (inside > 0) {
+      ctx.save(); ctx.beginPath(); ctx.rect(X, Y, W, Hh); ctx.clip();
+      ctx.fillStyle = '#F7D9A8'; ctx.fillRect(X, Y, W, Hh);
+      const g = ctx.createRadialGradient(X + W * .6, Y + Hh * .3, 20, X + W * .6, Y + Hh * .3, 700); g.addColorStop(0, 'rgba(255,240,200,.9)'); g.addColorStop(1, 'rgba(230,150,90,.35)'); ctx.fillStyle = g; ctx.fillRect(X, Y, W, Hh);
+      ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = .35; ctx.drawImage(GRAIN, 0, 0, 1920, 1080); ctx.restore();
+      const s1 = pop(t, 3.0), s2 = pop(t, 3.4);
+      inLabel(ctx, X + W / 2 + 40, Y + 210, -.01, s1, () => txt(ctx, 'Una habitación', UR(800, 104), 0, 0));
+      inLabel(ctx, X + W / 2 + 40, Y + 360, .01, s2, () => txt(ctx, 'propia', UR(300, 150, 'italic '), 0, 0, { col: C.lila }));
+    }
+    // puerta: la fachada gira sobre su bisagra izquierda
+    const open = ease(seg(t, 1.9, 3.1)), ang = open * PI * .47;
+    if (seg(t, 1.0, 1.3) > 0 && ang < PI / 2 - .02) {
+      const k = Math.cos(ang);
+      ctx.save(); ctx.transform(k, -Math.sin(ang) * .18, 0, 1, X * (1 - k), X * Math.sin(ang) * .18);
+      ctx.drawImage(HALFTONE, X, Y, W, Hh, X, Y, W, Hh);
+      ctx.fillStyle = `rgba(20,20,30,${.45 * open})`; ctx.fillRect(X, Y, W, Hh);
+      ctx.strokeStyle = 'rgba(250,248,242,.9)'; ctx.lineWidth = 6; ctx.strokeRect(X + 3, Y + 3, W - 6, Hh - 6);
+      ctx.fillStyle = C.sol; ctx.beginPath(); ctx.arc(X + W - 70, Y + Hh / 2 + 40, 16, 0, TAU); ctx.fill();
+      ctx.restore();
+    }
+    // casa en crayón
+    const roof = [...linePts(X - 60, Y + 10, X + W / 2, Y - 260, 16), ...linePts(X + W / 2, Y - 260, X + W + 60, Y + 10, 16).slice(1)];
+    const walls = [...linePts(X, Y, X, Y + Hh, 16), ...linePts(X, Y + Hh, X + W, Y + Hh, 16).slice(1), ...linePts(X + W, Y + Hh, X + W, Y, 16).slice(1)];
+    const chim = [...linePts(X + W * .74, Y - 120, X + W * .74, Y - 250, 14), ...linePts(X + W * .74, Y - 250, X + W * .84, Y - 250, 14).slice(1), ...linePts(X + W * .84, Y - 250, X + W * .84, Y - 70, 14).slice(1)];
+    crayon(ctx, drawSeq([walls, roof, chim], ease(seg(t, .1, 1.3))), C.lila, { w: 20 });
+    crayon(ctx, drawSeq(numeral('III', 150, 200, 190), ease(seg(t, .3, 1.1))), C.lila, { w: 18 });
+    // humo y subrayado
+    const smoke = Array.from({ length: 30 }, (_, i) => { const u = i / 29; return [X + W * .79 + 40 * Math.sin(u * 7), Y - 270 - u * 200]; });
+    crayon(ctx, [slice(smoke, ease(seg(t, 3.6, 4.8)))], C.noche, { w: 10, a: .7 });
+    const ul = Array.from({ length: 34 }, (_, i) => [X + W / 2 - 190 + i * 14, Y + 450 + 7 * Math.sin(i * .5)]);
+    crayon(ctx, [slice(ul, out(seg(t, 4.0, 4.8)))], C.coral, { w: 18 });
+    ctx.restore();
+    grainTop(ctx);
+  } });
+
+// IV · El barrio no es solo un barrio. Es una red. — papeles clavados unidos con hilo
+const SCRAPS = [
+  { s: 'El barrio', f: UR(800, 96), x: 470, y: 300, fill: '#FBFAF6', t0: .7, rot: -.04 },
+  { s: 'no es solo', f: UR(300, 88), x: 1380, y: 250, fill: HALFTONE, box: true, t0: 1.1, rot: .035 },
+  { s: 'un barrio.', f: UR(800, 96), x: 900, y: 520, fill: C.durazno, t0: 1.5, rot: -.02 },
+];
+const BIGIV = { s: 'Es una red.', f: UR(800, 150), x: 1180, y: 830, t0: 4.0, rot: .015 };
+const DOTS = Array.from({ length: 9 }, (_, i) => { const R = rng(900 + i); return { x: 160 + R() * 1600, y: 140 + R() * 820, t0: 2.2 + i * .12 }; }).filter(d => !SCRAPS.some(s => Math.hypot(s.x - d.x, s.y - d.y) < 280) && Math.hypot(BIGIV.x - d.x, BIGIV.y - d.y) > 380 && Math.hypot(1690 - d.x, 560 - d.y) > 260);
+CHAPTERS.push({ id: '64-capitulo-IV', title: 'IV · El barrio es una red', dur: 9, smooth: true,
+  text: 'Tres papeles caen sobre la mesa: «El barrio», «no es solo», «un barrio.». Cada uno tiene una tachuela, y un hilo de crayón los va uniendo junto a casitas del barrio. Al final cae «Es una red.» y todos los hilos llegan a él.',
+  draw(ctx, t) {
+    bgPaper(ctx, t);
+    const ey = exitY(t, 9); ctx.save(); ctx.translate(0, ey);
+    crayon(ctx, drawSeq(numeral('IV', 1580, 560, 220), ease(seg(t, .2, 1.0))), C.mar, { w: 22 });
+    // casitas
+    DOTS.forEach((d, i) => { const p = seg(t, d.t0, d.t0 + .35); if (p) crayon(ctx, [slice([[d.x - 26, d.y + 22], [d.x - 26, d.y - 4], [d.x, d.y - 28], [d.x + 26, d.y - 4], [d.x + 26, d.y + 22], [d.x - 26, d.y + 22]].flatMap((pt, k, a) => k ? linePts(...a[k - 1], ...pt, 8).slice(1) : [pt]), p)], C.noche, { w: 7, a: .8 }); });
+    // hilos: entre papeles, a las casitas y al final hacia «Es una red.»
+    const pins = SCRAPS.map(s => [s.x - 10, s.y - 62]);
+    const bigPin = [BIGIV.x, BIGIV.y - 100];
+    const threads = [[pins[0], pins[1], 2.0], [pins[1], pins[2], 2.4], [pins[2], pins[0], 2.8]];
+    DOTS.forEach((d, i) => { const near = pins.reduce((b, p) => Math.hypot(p[0] - d.x, p[1] - d.y) < Math.hypot(b[0] - d.x, b[1] - d.y) ? p : b); threads.push([near, [d.x, d.y - 28], d.t0 + .3]); });
+    pins.forEach((p, i) => threads.push([p, bigPin, 4.6 + i * .2]));
+    const sag = (a, b, p) => { const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2 + Math.hypot(a[0] - b[0], a[1] - b[1]) * .1; return Array.from({ length: 26 }, (_, i) => { const u = i / 25; return [(1 - u) ** 2 * a[0] + 2 * (1 - u) * u * mx + u * u * b[0], (1 - u) ** 2 * a[1] + 2 * (1 - u) * u * my + u * u * b[1]]; }).slice(0, Math.ceil(26 * p)); };
+    // papeles
+    const paperOf = (sc, i, big) => {
+      const s = pop(t, sc.t0), w = measure(ctx, sc.s, sc.f) + 90, h = parseInt(sc.f.match(/(\d+)px/)[1]) * 1.3;
+      label(ctx, sc.x, sc.y, w, h, sc.fill || C.mar, 60 + i * 7, sc.rot, s);
+      inLabel(ctx, sc.x, sc.y, sc.rot, s, () => { if (sc.box) { ctx.fillStyle = '#FBFAF6'; ctx.fillRect(-w / 2 + 25, -h * .34, w - 50, h * .68); } txt(ctx, sc.s, sc.f, 0, 4, { col: big ? '#FBFAF6' : C.noche }); });
+    };
+    SCRAPS.forEach((sc, i) => paperOf(sc, i));
+    paperOf({ ...BIGIV, fill: C.mar }, 9, true);
+    crayon(ctx, threads.map(([a, b, t0]) => sag(a, b, out(seg(t, t0, t0 + .6)))), C.rojo, { w: 7 });
+    // tachuelas
+    [...pins.map((p, i) => [p, SCRAPS[i].t0 + .3]), [bigPin, BIGIV.t0 + .3]].forEach(([[x, y], t0]) => { const s = seg(t, t0, t0 + .15); if (s) { ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.arc(x + 4, y + 6, 15, 0, TAU); ctx.fill(); ctx.fillStyle = C.sol; ctx.beginPath(); ctx.arc(x, y, 15, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.arc(x - 5, y - 5, 5, 0, TAU); ctx.fill(); } });
+    ctx.restore();
+    grainTop(ctx);
+  } });
+
+GROUPS.push({ h: 'Capítulos', small: 'títulos animados', p: 'Un título animado por movimiento, de 8 a 9 s, hecho con papel, crayón y fotocopia. Cada uno tiene su propia idea. Al final todo sube y sale del cuadro, así que se puede cortar directo al primer plano del capítulo.', clips: CHAPTERS });
+
+// ── apertura sobre el metrocable: los aliados viajan colgados de un cable como cabinas ──
+const CA = [-80, 250], CB = [2000, 640];
+const onCable = u => [lerp(CA[0], CB[0], u), lerp(CA[1], CB[1], u)];
+const CABINS = [
+  { s: 'IMPACT HUB', fill: '#FBFAF6', t0: .35 },
+  { s: 'SECRETARÍA DE LAS MUJERES', fill: C.sol, t0: 1.85 },
+  { s: 'SURA ASSET MANAGEMENT', fill: C.salmon, t0: 3.35 },
+];
+// recorrido: entra rápido, frena con rebote, se mece y sale acelerando
+function cabinU(t, t0) {
+  const a = seg(t, t0, t0 + .55), b = seg(t, t0 + 1.35, t0 + 1.8);
+  return lerp(-.25, .5, back(a)) + .03 * seg(t, t0 + .55, t0 + 1.35) + .8 * inn(b);
+}
+function cabinRot(t, t0) {
+  const since = t - (t0 + .5);
+  let r = since > 0 ? .22 * Math.exp(-since * 3.2) * Math.sin(since * 9) : -.18 * seg(t, t0, t0 + .5);
+  return r - .2 * inn(seg(t, t0 + 1.35, t0 + 1.8));
+}
+const jolt = (t, times) => times.reduce((a, t0) => { const d = t - t0; return d >= 0 && d < .18 ? a + (1 - d / .18) * 10 : a; }, 0);
+const OPEN = { id: '60-apertura-metrocable', title: 'Aliados presentan, sobre el metrocable', dur: 12, smooth: true, alpha: true, preview: testShot,
+  text: 'Va encima del plano del metrocable. Un cable de crayón cruza el cuadro y los nombres de los aliados llegan colgados como cabinas: entran rápido, frenan, se mecen y salen. «presentan» llega escrito a mano y luego caen de golpe tres tiras rasgadas con Ciudad Caracola, una espiral y destellos. Al final todo sube y deja limpio el plano. Dura 12 s.',
+  draw(ctx, t) {
+    const j = jolt(t, [6.0, 6.35, 6.7]), jx = wob(FRAME, j, 3), jy = wob(FRAME + 50, j, 4);
+    const ey = exitY(t, 12); ctx.save(); ctx.translate(jx, jy + ey);
+    // cable
+    const cab = ease(seg(t, 0, .45));
+    crayon(ctx, [slice(linePts(...CA, ...CB, 24), cab)], C.noche, { w: 11 });
+    if (cab > 0) crayon(ctx, [slice(linePts(CA[0], CA[1] + 26, CB[0], CB[1] + 26, 24), ease(seg(t, .1, .55)))], C.noche, { w: 6, a: .6 });
+    // cabinas
+    CABINS.forEach((cb, i) => {
+      const u = cabinU(t, cb.t0); if (u < -.2 || u > 1.2) return;
+      const [wx, wy] = onCable(u), rot = cabinRot(t, cb.t0) + Math.atan2(CB[1] - CA[1], CB[0] - CA[0]) * 0;
+      const f = UR(800, 74), w = measure(ctx, cb.s, f, 6) + 100, h = 132, drop = 180;
+      ctx.save(); ctx.translate(wx, wy); ctx.rotate(rot);
+      ctx.strokeStyle = C.noche; ctx.lineWidth = 5; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, drop - 70); ctx.moveTo(0, drop - 70); ctx.lineTo(-w / 2 + 30, drop - h / 2); ctx.moveTo(0, drop - 70); ctx.lineTo(w / 2 - 30, drop - h / 2); ctx.stroke();
+      ctx.fillStyle = C.noche; ctx.beginPath(); ctx.arc(0, 0, 15, 0, TAU); ctx.fill(); ctx.fillStyle = C.sol; ctx.beginPath(); ctx.arc(0, 0, 6, 0, TAU); ctx.fill();
+      label(ctx, 0, drop, w, h, cb.fill, 300 + i * 9, 0, 1);
+      txt(ctx, cb.s, f, 3, drop + 4, { track: 6 });
+      ctx.restore();
+    });
+    // presentan
+    const ps = pop(t, 5.1, .25), pout = inn(seg(t, 5.85, 6.05));
+    if (ps > 0 && pout < 1) {
+      inLabel(ctx, 960 + 1400 * pout, 540, -.05, ps, () => {
+        label(ctx, 0, 0, 420, 120, '#FBFAF6', 410, 0, 1);
+        txt(ctx, 'presentan', "600 92px Caveat, 'Bradley Hand', cursive", 0, 2, { col: C.lila });
+      });
+    }
+    // título en tiras que caen de golpe
+    const T = [
+      { y: 410, h: 230, fill: C.salmon, t0: 6.0, rot: -.03, seed: 501 },
+      { y: 640, h: 230, fill: '#FBFAF6', t0: 6.35, rot: .025, seed: 507 },
+    ];
+    T.forEach(r => { const s = pop(t, r.t0, .25); if (s) label(ctx, 960, r.y, 1180, r.h, r.fill, r.seed, r.rot, s); });
+    const s1 = pop(t, 6.0, .25), s2 = pop(t, 6.35, .25);
+    inLabel(ctx, 960, 410, -.03, s1, () => txt(ctx, 'Ciudad', UR(800, 190), 0, 8, { track: -4 }));
+    inLabel(ctx, 960, 640, .025, s2, () => txt(ctx, 'Caracola', UR(300, 190, 'italic '), 0, 8, { track: -2, col: C.lila }));
+    const s3 = pop(t, 6.7, .25);
+    if (s3) inLabel(ctx, 1380, 800, .06, s3, () => { label(ctx, 0, 0, 470, 76, HALFTONE, 520, 0, 1); ctx.fillStyle = '#FBFAF6'; ctx.fillRect(-205, -26, 410, 52); txt(ctx, 'seis voces en una misma espiral', "600 40px Caveat, 'Bradley Hand', cursive", 0, 2); });
+    crayon(ctx, [slice(spiralPts(1560, 360, 9, .6, 5.6 * PI), ease(seg(t, 7.0, 8.4)))], C.lila, { w: 16 });
+    const sp = []; for (let k = 0; k < 6; k++) { const a = -PI / 2 + (k - 2.5) * .45 - .6, p = out(seg(t, 8.3 + k * .05, 8.7 + k * .05)); sp.push(slice(linePts(400 + 80 * Math.cos(a), 300 + 80 * Math.sin(a), 400 + 150 * Math.cos(a), 300 + 150 * Math.sin(a), 12), p)); }
+    crayon(ctx, sp, C.rojo, { w: 14 });
+    ctx.restore();
+  } };
+GROUPS.unshift({ h: 'Apertura', small: 'sobre el metrocable', p: 'Rápida y con movimiento, con fondo transparente para ponerla encima del video del metrocable. Aquí se ve sobre un plano fotocopiado de prueba.', clips: [OPEN] });
+
+const CLIPS = GROUPS.flatMap(g => g.clips);
+
+// ── render de un cuadro; el dibujo va "en dos" (12 dibujos por segundo) ──
+function renderFrame(canvas, clip, t, scale = 1, withPreview = false) {
+  const tc = Math.min(t, clip.dur - 1e-3);
+  const f = Math.floor(tc * (clip.smooth ? 24 : 12));
+  BOIL = Math.floor(tc * 12) % 3; FRAME = f;
+  const ctx = canvas.getContext('2d'); ctx.__s = scale;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  if (withPreview && clip.preview) clip.preview(ctx);
+  clip.draw(ctx, clip.smooth ? tc : f / 12);
+  return f;
+}
+window.CLIPS = CLIPS; window.renderFrame = renderFrame;
+
+// ── tablero ──
+if (location.hash !== '#render') {
+  const root = document.getElementById('groups');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const players = [];
+  GROUPS.forEach(g => {
+    const sec = document.createElement('section'); sec.className = 'group';
+    sec.innerHTML = `<div class="group-head"><h2>${g.h} <small>${g.small}</small></h2><p>${g.p}</p></div><div class="clips"></div>`;
+    root.appendChild(sec);
+    g.clips.forEach(clip => {
+      const file = clip.alpha ? `${clip.id}.mov · ${clip.id}-vista-previa.mp4` : `${clip.id}.mp4`;
+      const fig = document.createElement('figure');
+      fig.innerHTML = `<div class="stage" tabindex="0" role="button" aria-label="Pausar o reproducir ${clip.title}"><canvas width="960" height="540"></canvas><div class="bar"></div><span class="state" hidden>Pausa</span></div>
+        <div class="meta"><h3>${clip.title}</h3><p>${clip.text}</p><span class="file">${file} · ${clip.dur} s</span></div>`;
+      sec.querySelector('.clips').appendChild(fig);
+      const st = fig.querySelector('.stage'), cv = fig.querySelector('canvas'), bar = fig.querySelector('.bar'), lbl = fig.querySelector('.state');
+      const p = { clip, cv, bar, t: 0, f: -1, playing: !reduce, visible: true };
+      const toggle = () => { p.playing = !p.playing; lbl.hidden = p.playing; };
+      st.addEventListener('click', toggle);
+      st.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } });
+      if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => p.visible = e.isIntersecting).observe(st);
+      if (!p.playing) lbl.hidden = false;
+      renderFrame(cv, clip, clip.dur * (clip.alpha && clip.dur < 3 ? .45 : .8), .5, true);
+      players.push(p);
+    });
+  });
+  let last = performance.now();
+  const loop = now => {
+    const dt = Math.min(.1, (now - last) / 1000); last = now;
+    for (const p of players) {
+      if (!p.playing || !p.visible) continue;
+      p.t = (p.t + dt) % (p.clip.dur + .8);
+      const f = Math.floor(Math.min(p.t, p.clip.dur - 1e-3) * (p.clip.smooth ? 24 : 12));
+      if (f !== p.f) { p.f = renderFrame(p.cv, p.clip, p.t, .5, true); p.bar.style.width = (100 * Math.min(1, p.t / p.clip.dur)) + '%'; }
+    }
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}
+</script>

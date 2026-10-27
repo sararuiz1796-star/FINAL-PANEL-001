@@ -17,6 +17,7 @@ const FPS = 24;
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, ignoreHTTPSErrors: !!proxy });
   await page.goto('file://' + path.join(__dirname, pageFile) + '#render');
   await page.evaluate(() => Promise.all(['200 64px Urbanist', 'italic 300 46px Urbanist', '800 190px Urbanist', 'italic 300 190px Urbanist'].map(f => document.fonts.load(f))));
+  await page.evaluate(() => window.FONTS_READY);
   if (!(await page.evaluate(() => document.fonts.check('800 190px Urbanist')))) console.warn('Aviso: no cargó la fuente Urbanist');
   await page.evaluate(() => {
     const cv = document.createElement('canvas');
