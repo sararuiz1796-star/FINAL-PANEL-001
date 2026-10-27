@@ -1,0 +1,360 @@
+<title>Ciudad Caracola · Animaciones</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,700;0,800;1,300&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+/* Tablero de animaciones; cada clip es una función draw(ctx, t) a 1920×1080 que también usa render-video.js */
+:root{
+  --noche:#0F2A3A; --niebla:#E3EEF3; --mar:#1F7593; --salmon:#EC9C7A; --texto2:#3b4f5c;
+  --display:'Urbanist','Avenir Next','Segoe UI',sans-serif; --mano:'Caveat','Bradley Hand',cursive;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--niebla);color:var(--noche);font-family:var(--display)}
+.board{max-width:1240px;margin:0 auto;padding-block:40px 80px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:grid;gap:48px}
+.intro{display:grid;gap:12px;max-width:68ch}
+.eyebrow{font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mar)}
+h1{margin:0;font-size:clamp(36px,6vw,64px);font-weight:800;line-height:.95;letter-spacing:-.02em;text-wrap:balance}
+h1 i{font-weight:300}
+.intro p{margin:0;font-size:17px;line-height:1.55}
+.clips{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:40px 28px}
+figure{margin:0;display:grid;gap:12px;min-width:0}
+.stage{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;border-radius:6px;overflow:hidden;cursor:pointer;background:var(--noche)}
+.stage.alpha{background:#5d6c74 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Crect width='12' height='12' fill='%2367777f'/%3E%3Crect x='12' y='12' width='12' height='12' fill='%2367777f'/%3E%3C/svg%3E")}
+.stage canvas{display:block;width:100%;height:100%}
+.stage:focus-visible{outline:3px solid var(--mar);outline-offset:3px}
+.bar{position:absolute;left:0;bottom:0;height:3px;background:var(--salmon);width:0}
+.state{position:absolute;right:10px;top:10px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:rgba(15,42,58,.55);padding:4px 9px;border-radius:99px}
+.meta{display:grid;gap:6px}
+.meta h2{margin:0;font-size:22px;font-weight:700;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.meta h2 small{font-family:var(--mano);font-size:22px;font-weight:600;color:var(--mar)}
+.meta p{margin:0;font-size:15px;line-height:1.5;color:var(--texto2)}
+.meta .file{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--noche)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:20px 32px;font-size:15px;line-height:1.5;border-top:1.5px solid var(--noche);padding-top:16px}
+.notes h3{margin:0 0 4px;font-size:15px}
+.notes p{margin:0}
+</style>
+
+<main class="board">
+  <header class="intro">
+    <span class="eyebrow">Cuidadoras Decididas · Microdocumental · Medellín 2026</span>
+    <h1>Ciudad <i>Caracola</i>, animaciones</h1>
+    <p>Piezas en movimiento para acompañar la voz en off, sin texto en pantalla. Hay una por movimiento, una apertura y cuatro transiciones. Toca cualquier clip para pausarlo o reanudarlo.</p>
+  </header>
+  <section class="clips" id="clips"></section>
+  <section class="notes">
+    <div><h3>Formato</h3><p>1920×1080 a 24 cuadros por segundo. Las animaciones de fondo están en MP4 (H.264). Las transiciones están en MOV ProRes 4444 con canal alfa, para ponerlas encima del plano.</p></div>
+    <div><h3>Cómo montarlas</h3><p>Funcionan bajo la voz en off que abre cada movimiento, o entre dos testimonios cuando se necesita respirar. Se pueden acelerar, cortar o poner en bucle.</p></div>
+    <div><h3>Transiciones</h3><p>La espiral cubre todo el cuadro a la mitad del clip, cerca de 1,2 s. Ese es el punto para cortar al plano siguiente.</p></div>
+  </section>
+</main>
+
+<script>
+// ── utilidades ──
+const C = { noche:'#0F2A3A', niebla:'#E3EEF3', salmon:'#EC9C7A', durazno:'#F6CDB6', sol:'#FFD86E', coral:'#E19676', lila:'#584986', lilaC:'#C9BEE6', mar:'#1F7593', blanco:'#FFFDFB' };
+const PI = Math.PI, TAU = 2 * PI;
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const ease = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const out = x => 1 - Math.pow(1 - x, 3);
+const back = x => { const c = 1.9; return x <= 0 ? 0 : 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function alpha(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${n >> 8 & 255},${n & 255},${a})`; }
+function dot(ctx, x, y, r, fill, ring, rw = 4) {
+  if (r <= 0) return;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fillStyle = fill; ctx.fill();
+  if (ring) { ctx.lineWidth = rw; ctx.strokeStyle = ring; ctx.stroke(); }
+}
+const spiralAt = (cx, cy, b, th, rot = 0) => [cx + b * th * Math.cos(th + rot), cy + b * th * Math.sin(th + rot)];
+function spiralPath(ctx, cx, cy, b, t0, t1, rot = 0) {
+  const n = Math.max(2, Math.ceil((t1 - t0) * 30));
+  ctx.beginPath();
+  for (let i = 0; i <= n; i++) { const [x, y] = spiralAt(cx, cy, b, t0 + (t1 - t0) * i / n, rot); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+}
+
+// ── clips ──
+const CLIPS = [];
+
+// 00 · La espiral se dibuja desde adentro y aparecen las seis voces
+CLIPS.push({
+  id: '00-apertura-espiral', dur: 10, bg: C.salmon,
+  title: 'Apertura', small: 'seis voces en una misma espiral',
+  text: 'La espiral se dibuja desde el centro y, a su paso, aparecen seis puntos, uno por cada mujer. Sirve para abrir el documental o debajo de la primera voz en off.',
+  draw(ctx, t) {
+    const cx = 960, cy = 540, b = 24, t0 = .5 * PI, t1 = 6.4 * PI;
+    const rot = t > 6.5 ? (t - 6.5) * .06 : 0;
+    const halo = out(seg(t, .2, 2.2));
+    dot(ctx, cx, cy, 300 * halo, C.durazno);
+    const th = t0 + (t1 - t0) * ease(seg(t, .6, 6.5));
+    ctx.lineCap = 'round'; ctx.lineWidth = 5; ctx.strokeStyle = C.noche;
+    if (th > t0 + .01) { spiralPath(ctx, cx, cy, b, t0, th, rot); ctx.stroke(); }
+    const dots = [[2.0, C.sol], [2.6, C.sol], [3.3, C.lila], [4.1, C.lila], [4.9, C.mar], [5.6, C.mar]];
+    dots.forEach(([k, col], i) => {
+      const p = back(clamp((th - k * PI) / 1.1));
+      const breathe = t > 7 ? 1 + .06 * Math.sin((t - 7) * 2.4 + i) : 1;
+      const [x, y] = spiralAt(cx, cy, b, k * PI, rot);
+      dot(ctx, x, y, 26 * p * breathe, col, C.noche, 5);
+    });
+  }
+});
+
+// 01 · La casa: tareas que se repiten hasta dejar de verse
+const TAREAS = [.02, .05, .08, .11, .15, .22, .27, .31, .38, .46, .52, .58, .63, .69, .74, .8, .86, .92];
+CLIPS.push({
+  id: '01-casa-tareas-que-se-repiten', dur: 12, bg: C.niebla,
+  title: 'I · La casa', small: 'tareas que se repiten',
+  text: 'Una aguja recorre el día tres veces. En cada vuelta deja las mismas tareas en el mismo lugar y las de la vuelta anterior se van apagando. Acompaña la voz en off: «Hay tareas que se repiten tanto que dejan de llamar la atención».',
+  draw(ctx, t) {
+    const cx = 960, cy = 540, P = 4, turns = 3, R = [210, 300, 390];
+    const cols = [C.sol, C.coral, C.mar];
+    const turn = Math.min(turns - 1, Math.floor(t / P));
+    const frac = clamp(t / P - turn, 0, t >= turns * P ? 1 : 1);
+    // anillos guía
+    R.forEach((r, k) => { ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.lineWidth = 2; ctx.strokeStyle = alpha(C.noche, .07); ctx.stroke(); });
+    // rastro de la vuelta actual
+    for (let k = 0; k <= turn; k++) {
+      const f = k < turn ? 1 : frac;
+      ctx.beginPath(); ctx.arc(cx, cy, R[k], -PI / 2, -PI / 2 + TAU * f);
+      const fade = k < turn ? lerp(.55, .14, seg(t, (k + 1) * P, (k + 1) * P + 2)) : .55;
+      ctx.lineWidth = 3; ctx.strokeStyle = alpha(C.noche, fade); ctx.stroke();
+    }
+    // tareas
+    for (let k = 0; k <= turn; k++) {
+      TAREAS.forEach((f, i) => {
+        const born = k * P + f * P; if (t < born) return;
+        const a = -PI / 2 + TAU * f, p = back(clamp((t - born) / .45));
+        const dim = k < turn || t > turns * P ? seg(t, (k + 1) * P, (k + 1) * P + 2) : 0;
+        const x = cx + R[k] * Math.cos(a), y = cy + R[k] * Math.sin(a);
+        const col = cols[(i + k) % 3];
+        dot(ctx, x, y, 15 * p * (1 - .35 * dim), dim ? mix(col, C.niebla, .78 * dim) : col, alpha(C.noche, lerp(1, .15, dim)), 3);
+      });
+    }
+    // aguja
+    const a = -PI / 2 + TAU * (t / P);
+    if (t < turns * P) {
+      const g = ctx.createConicGradient ? ctx.createConicGradient(a - .7, cx, cy) : null;
+      if (g) { g.addColorStop(0, alpha(C.mar, 0)); g.addColorStop(.11, alpha(C.mar, .16)); g.addColorStop(.111, alpha(C.mar, 0)); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, 440, a - .7, a); ctx.closePath(); ctx.fillStyle = g; ctx.fill(); }
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 450 * Math.cos(a), cy + 450 * Math.sin(a));
+      ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.strokeStyle = C.noche; ctx.stroke();
+    }
+    dot(ctx, cx, cy, 16, C.noche);
+  }
+});
+function mix(h1, h2, x) {
+  const a = parseInt(h1.slice(1), 16), b = parseInt(h2.slice(1), 16);
+  const ch = s => Math.round(lerp(a >> s & 255, b >> s & 255, x));
+  return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
+}
+
+// 02 · El negocio: dos líneas que se cruzan a lo largo del día
+const yC = x => 540 + 150 * Math.sin(x * .006 + .5) + 70 * Math.sin(x * .017 + 1.3) + 30 * Math.sin(x * .041);
+const yN = x => 540 + 160 * Math.sin(x * .0052 + 3.4) + 60 * Math.sin(x * .021 + .2) + 35 * Math.sin(x * .033 + 2);
+const X0 = 140, X1 = 1780;
+const CRUCES = (() => { const c = []; let s = Math.sign(yC(X0) - yN(X0)); for (let x = X0; x <= X1; x += 2) { const n = Math.sign(yC(x) - yN(x)); if (n && n !== s) { c.push(x); s = n; } } return c; })();
+CLIPS.push({
+  id: '02-negocio-el-dia-cruzado', dur: 12, bg: C.noche,
+  title: 'II · El negocio', small: 'el día cruzado',
+  text: 'Dos líneas cruzan el día: una amarilla para el cuidado y una coral para el negocio. Avanzan juntas y se cruzan una y otra vez, y cada cruce se marca con un destello. Va con la pregunta «¿A qué hora empieza realmente el trabajo de una mujer?».',
+  draw(ctx, t) {
+    const head = lerp(X0, X1, seg(t, .4, 10.4));
+    // 24 marcas: las horas del día
+    for (let h = 0; h <= 24; h++) {
+      const x = lerp(X0, X1, h / 24), on = x <= head;
+      ctx.beginPath(); ctx.moveTo(x, 900); ctx.lineTo(x, h % 6 ? 918 : 940);
+      ctx.lineWidth = 2; ctx.strokeStyle = alpha(C.niebla, on ? .45 : .12); ctx.stroke();
+    }
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (const [fn, col] of [[yC, C.sol], [yN, C.coral]]) {
+      ctx.beginPath(); ctx.moveTo(X0, fn(X0));
+      for (let x = X0; x <= head; x += 4) ctx.lineTo(x, fn(x));
+      ctx.lineTo(head, fn(head));
+      ctx.shadowColor = alpha(col, .5); ctx.shadowBlur = 18;
+      ctx.lineWidth = 7; ctx.strokeStyle = col; ctx.stroke();
+      ctx.shadowBlur = 0;
+      dot(ctx, head, fn(head), 14, col, C.noche, 4);
+    }
+    // destellos en cada cruce
+    const speed = (X1 - X0) / 10;
+    for (const x of CRUCES) {
+      if (x > head) break;
+      const age = (head - x) / speed + (t > 10.4 ? t - 10.4 : 0), y = yC(x);
+      const p = clamp(age / 1.2);
+      ctx.beginPath(); ctx.arc(x, y, 12 + 60 * out(p), 0, TAU);
+      ctx.lineWidth = 3; ctx.strokeStyle = alpha(C.blanco, .8 * (1 - p)); ctx.stroke();
+      dot(ctx, x, y, 7, C.blanco);
+    }
+  }
+});
+
+// 03 · El taller: de seis casas a una mesa compartida
+const HOUSES = Array.from({ length: 6 }, (_, i) => { const a = (i * 60 + 30) * PI / 180; return [960 + 790 * Math.cos(a), 540 + 400 * Math.sin(a), a]; });
+const TERR = [C.mar, C.mar, C.lilaC, C.lilaC, C.sol, C.sol];
+CLIPS.push({
+  id: '03-taller-una-habitacion-propia', dur: 10, bg: C.niebla,
+  title: 'III · El taller', small: 'una habitación propia',
+  text: 'Seis mujeres salen de sus casas y llegan a la misma mesa. Alrededor de ellas se dibuja un cuarto, y la conversación se mueve de una a otra mientras suben ideas. Va bajo la voz en off del tercer movimiento.',
+  draw(ctx, t) {
+    const cx = 960, cy = 540;
+    // casas
+    HOUSES.forEach(([x, y], i) => {
+      const p = out(seg(t, .1 + i * .08, 1.1 + i * .08)), leave = seg(t, 1.6 + i * .25, 3.2 + i * .25);
+      ctx.save(); ctx.translate(x, y); ctx.scale(p, p);
+      ctx.beginPath(); ctx.moveTo(-42, 34); ctx.lineTo(-42, -8); ctx.lineTo(0, -46); ctx.lineTo(42, -8); ctx.lineTo(42, 34); ctx.closePath();
+      ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = alpha(C.noche, lerp(1, .3, leave)); ctx.stroke();
+      ctx.restore();
+    });
+    // cuarto propio
+    const room = ease(seg(t, 3.4, 5.6)), W = 640, H = 470, r = 40;
+    if (room > 0) {
+      ctx.save(); ctx.beginPath(); ctx.roundRect(cx - W / 2, cy - H / 2, W, H, r);
+      const per = 2 * (W + H);
+      ctx.setLineDash([per * room, per]); ctx.lineDashOffset = 0;
+      ctx.fillStyle = alpha(C.blanco, .55 * room); ctx.fill();
+      ctx.lineWidth = 5; ctx.strokeStyle = C.lila; ctx.stroke(); ctx.restore();
+    }
+    // mesa
+    dot(ctx, cx, cy, 105 * out(seg(t, 4.4, 5.6)), C.lilaC);
+    // ideas que suben
+    const R = rng(7);
+    for (let k = 0; k < 26; k++) {
+      const st = 5.6 + R() * 4.2, ox = (R() - .5) * 170, life = 1.8;
+      const p = (t - st) / life; if (p < 0 || p > 1) continue;
+      dot(ctx, cx + ox + 14 * Math.sin(p * 6 + k), cy - 30 - 190 * out(p), 6 * (1 - p) + 2, alpha(C.sol, 1 - p));
+    }
+    // ellas
+    HOUSES.forEach(([hx, hy, a], i) => {
+      const sx = cx + 175 * Math.cos(a), sy = cy + 175 * Math.sin(a);
+      const p = ease(seg(t, 1.6 + i * .25, 4.6 + i * .25));
+      const mx = (hx + sx) / 2 + 160 * Math.cos(a + PI / 2), my = (hy + sy) / 2 + 160 * Math.sin(a + PI / 2);
+      const x = (1 - p) ** 2 * hx + 2 * (1 - p) * p * mx + p * p * sx, y = (1 - p) ** 2 * (hy + 4) + 2 * (1 - p) * p * my + p * p * sy;
+      // turno de palabra
+      const talk = t > 6 ? clamp(1 - Math.abs(((t - 6) * 1.2) % 6 - i) * 1.6) : 0;
+      if (talk > 0) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(cx, cy); ctx.lineWidth = 4; ctx.strokeStyle = alpha(C.lila, .6 * talk); ctx.stroke(); }
+      const show = out(seg(t, 1.1 + i * .08, 1.6 + i * .08));
+      dot(ctx, x, y, (22 + 6 * talk) * show, TERR[i], C.noche, 4);
+    });
+  }
+});
+
+// 04 · El barrio: una red que crece, desigual
+const NET = (() => {
+  const R = rng(42), clusters = [
+    { x: 430, y: 650, n: 11, rad: 230, col: C.sol },   // San Cristóbal: más disperso
+    { x: 1080, y: 330, n: 24, rad: 220, col: C.mar },  // Comuna 1
+    { x: 1460, y: 700, n: 20, rad: 210, col: C.lilaC },// Comuna 3
+  ];
+  const nodes = [], edges = [], mains = [];
+  clusters.forEach((c, ci) => {
+    const start = nodes.length;
+    [[-55, -18], [52, 22]].forEach(([dx, dy]) => { mains.push(nodes.length); nodes.push({ x: c.x + dx, y: c.y + dy, t: .5 + ci * .3, main: true, col: c.col, ci }); });
+    for (let k = 0; k < c.n; k++) {
+      const a = R() * TAU, d = (.35 + .65 * Math.sqrt(R())) * c.rad;
+      nodes.push({ x: c.x + d * Math.cos(a) * 1.15, y: c.y + d * Math.sin(a) * .9, t: 1.2 + (d / c.rad) * 4.6 + R() * 1.2, ci });
+    }
+    const ids = nodes.slice(start).map((_, k) => start + k);
+    ids.forEach(i => {
+      const near = ids.filter(j => j !== i).sort((p, q) => Math.hypot(nodes[p].x - nodes[i].x, nodes[p].y - nodes[i].y) - Math.hypot(nodes[q].x - nodes[i].x, nodes[q].y - nodes[i].y)).slice(0, 2);
+      near.forEach(j => { if (!edges.some(e => (e[0] === j && e[1] === i))) edges.push([i, j]); });
+    });
+  });
+  const cross = [[mains[0], mains[2]], [mains[1], mains[4]], [mains[3], mains[5]], [mains[2], mains[4]], [mains[0], mains[5]]];
+  return { nodes, edges, cross };
+})();
+CLIPS.push({
+  id: '04-barrio-la-red', dur: 12, bg: C.noche,
+  title: 'IV · El barrio', small: 'es una red',
+  text: 'En cada territorio, alrededor de las dos protagonistas aparecen vecinas y se tejen lazos. Las redes no crecen igual: San Cristóbal queda más disperso. Al final se dibujan los lazos que el grupo tendió entre los tres territorios.',
+  draw(ctx, t) {
+    const { nodes, edges, cross } = NET;
+    ctx.lineCap = 'round';
+    for (const [i, j] of edges) {
+      const a = nodes[i], b = nodes[j], st = Math.max(a.t, b.t) + .2, p = out(seg(t, st, st + .8));
+      if (!p) continue;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(lerp(a.x, b.x, p), lerp(a.y, b.y, p));
+      ctx.lineWidth = 2.5; ctx.strokeStyle = alpha(C.niebla, .35); ctx.stroke();
+    }
+    cross.forEach(([i, j], k) => {
+      const a = nodes[i], b = nodes[j], p = ease(seg(t, 7.4 + k * .45, 9.4 + k * .45));
+      if (!p) return;
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2 - 140;
+      ctx.beginPath(); const n = 40;
+      for (let s = 0; s <= n * p; s++) { const u = s / n; const x = (1 - u) ** 2 * a.x + 2 * (1 - u) * u * mx + u * u * b.x, y = (1 - u) ** 2 * a.y + 2 * (1 - u) * u * my + u * u * b.y; s ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+      ctx.lineWidth = 4; ctx.strokeStyle = alpha(C.salmon, .9); ctx.stroke();
+    });
+    nodes.forEach((nd, i) => {
+      const p = back(seg(t, nd.t, nd.t + .5));
+      if (nd.main) {
+        const pulse = 1 + .08 * Math.sin(t * 2.2 + i);
+        dot(ctx, nd.x, nd.y, 22 * p * pulse, nd.col, C.blanco, 4);
+      } else dot(ctx, nd.x, nd.y, 8 * p, alpha(C.niebla, .85));
+    });
+  }
+});
+
+// 10–13 · Transiciones con alfa: una espiral gruesa que cubre el cuadro y lo libera
+[['10-transicion-I', C.sol], ['11-transicion-II', C.coral], ['12-transicion-III', C.lila], ['13-transicion-IV', C.mar]].forEach(([id, col], k) => {
+  CLIPS.push({
+    id, dur: 2.5, alpha: true, bg: null, loopPad: .6,
+    title: `Transición ${['I', 'II', 'III', 'IV'][k]}`, small: 'vuelta de espiral',
+    text: 'Una vuelta de espiral en el color del movimiento entra desde el centro, cubre el cuadro y sale. Se pone encima del corte entre dos planos.',
+    draw(ctx, t) {
+      const cx = 960, cy = 540, b = 62, t0 = .1, t1 = 6.8 * PI;
+      const head = t0 + (t1 - t0) * ease(seg(t, 0, 1.2)), tail = t0 + (t1 - t0) * ease(seg(t, 1.25, 2.45));
+      if (head - tail < .02) return;
+      ctx.save(); ctx.lineCap = 'butt'; ctx.lineWidth = 2 * PI * b + 8; ctx.strokeStyle = col;
+      spiralPath(ctx, cx, cy, b, tail, head, -PI / 2); ctx.stroke();
+      // el centro queda cubierto mientras la cola no ha salido
+      if (tail <= t0 + .01) dot(ctx, cx, cy, Math.min(PI * b, b * head), col);
+      else if (head > 2 * PI && tail < 2 * PI) dot(ctx, cx, cy, 2 * PI * b * (1 - tail / (2 * PI)) * 1.05, col);
+      ctx.restore();
+    }
+  });
+});
+
+// ── render de un cuadro, compartido con render-video.js ──
+function renderFrame(canvas, clip, t, scale = 1) {
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  if (clip.bg) { ctx.fillStyle = clip.bg; ctx.fillRect(0, 0, 1920, 1080); }
+  clip.draw(ctx, Math.min(t, clip.dur - 1e-3));
+}
+window.CLIPS = CLIPS; window.renderFrame = renderFrame;
+
+// ── tablero ──
+if (location.hash !== '#render') {
+  const root = document.getElementById('clips');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const players = CLIPS.map(clip => {
+    const ext = clip.alpha ? 'mov' : 'mp4';
+    const fig = document.createElement('figure');
+    fig.innerHTML = `<div class="stage${clip.alpha ? ' alpha' : ''}" tabindex="0" role="button" aria-label="Pausar o reproducir ${clip.title}"><canvas width="960" height="540"></canvas><div class="bar"></div><span class="state" hidden>Pausa</span></div>
+      <div class="meta"><h2>${clip.title} <small>${clip.small}</small></h2><p>${clip.text}</p><span class="file">${clip.id}.${ext} · ${clip.dur} s</span></div>`;
+    root.appendChild(fig);
+    const st = fig.querySelector('.stage'), cv = fig.querySelector('canvas'), bar = fig.querySelector('.bar'), lbl = fig.querySelector('.state');
+    const p = { clip, cv, bar, lbl, t: clip.dur * .72, playing: !reduce, visible: true };
+    const toggle = () => { p.playing = !p.playing; lbl.hidden = p.playing; };
+    st.addEventListener('click', toggle);
+    st.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } });
+    if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => p.visible = e.isIntersecting).observe(st);
+    if (!p.playing) lbl.hidden = false;
+    renderFrame(cv, clip, p.t, .5);
+    return p;
+  });
+  let last = performance.now();
+  players.forEach(p => p.t = 0);
+  if (reduce) players.forEach(p => { p.t = p.clip.dur * .72; renderFrame(p.cv, p.clip, p.t, .5); });
+  const loop = now => {
+    const dt = Math.min(.1, (now - last) / 1000); last = now;
+    for (const p of players) {
+      if (!p.playing || !p.visible) continue;
+      const total = p.clip.dur + (p.clip.loopPad ?? 1.2);
+      p.t = (p.t + dt) % total;
+      renderFrame(p.cv, p.clip, p.t, .5);
+      p.bar.style.width = (100 * Math.min(1, p.t / p.clip.dur)) + '%';
+    }
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}
+</script>
